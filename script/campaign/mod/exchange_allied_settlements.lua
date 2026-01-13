@@ -360,13 +360,21 @@ end
 -- Function: Attempt Transfer
 function eas_mod:attempt_transfer()
     if selected_giver_key and selected_region_cqi and selected_receiver_key then
+        local giver_faction = cm:get_faction(selected_giver_key)
+        local receiver_faction = cm:get_faction(selected_receiver_key)
+        local player_faction = cm:get_faction(cm:get_local_faction_name(true))
+        
+        -- Validate alliances (User Requirement: Both must be player allies. Their relationship to each other is irrelevant.)
+        if not are_allies(player_faction, giver_faction) or not are_allies(player_faction, receiver_faction) then
+             -- Alliance broken while menu was open
+             return
+        end
+
         -- Execute Transfer
         local region = cm:get_region_by_cqi(selected_region_cqi)
         if region then
             -- Verify ownership didn't change while menu was open
             if region:owning_faction():name() == selected_giver_key then
-                -- Check for null params? 
-                -- cm:transfer_region_to_faction(region_key, faction_key)
                 cm:transfer_region_to_faction(region:name(), selected_receiver_key)
                 
                 -- Close panel
