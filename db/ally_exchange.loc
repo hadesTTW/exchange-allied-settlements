@@ -1,0 +1,10 @@
+ally_exchange_title	Exchange Allied Settlements	true
+ally_exchange_giver_label	Giver:	true
+ally_exchange_region_label	Region:	true
+ally_exchange_receiver_label	Receiver:	true
+ally_exchange_select_ally	Select Ally...	true
+ally_exchange_select_region	Select Settlement...	true
+ally_exchange_select_receiver	Select Receiver...	true
+ally_exchange_confirm	Confirm	true
+ally_exchange_cancel	Cancel	true
+ally_exchange_tooltip_open	Exchange Allied Settlements||Open the Allied Settlement Exchange Menu	true
