@@ -1,6 +1,10 @@
 local eas_mod = {}
-local cm = get_cm()
-local core = get_core()
+
+local function log(text)
+    out("EAS_MOD: " .. tostring(text))
+end
+
+log("Script loading...")
 
 -- Constants
 local PANEL_PATH = "ui/campaign ui/ally_exchange_panel.twui.xml"
@@ -78,23 +82,68 @@ end
 
 -- Function: Init
 function eas_mod:init()
-    -- Initial setup if needed
+    log("init called")
+    if uic_panel then 
+        log("Panel already exists, skipping init")
+        return 
+    end
+    
+    local ui_root = core:get_ui_root()
+    if not ui_root then
+        log("ui_root missing in init")
+        return
+    end
+
+    -- Create the panel (hidden)
+    log("Creating panel...")
+    uic_panel = core:get_or_create_component(PANEL_NAME, PANEL_PATH, ui_root)
+    if not uic_panel then
+        log("Failed to create panel")
+        return
+    end
+    uic_panel:SetVisible(false)
 end
 
 -- Function: Create Top Left Button
 local function create_top_button()
+    log("create_top_button called")
     local ui_root = core:get_ui_root()
-    local buttongroup = find_uicomponent(ui_root, "menu_bar", "buttongroup")
-    if not buttongroup then return end
+    if not ui_root then 
+        log("ui_root not found")
+        return 
+    end
+
+    local menu_bar = find_uicomponent(ui_root, "menu_bar")
+    if not menu_bar then 
+        log("menu_bar not found")
+        return 
+    end
+
+    local buttongroup = find_uicomponent(menu_bar, "buttongroup")
+    if not buttongroup then 
+        log("buttongroup not found")
+        return 
+    end
+    
+    log("buttongroup found")
 
     local eas_button = find_uicomponent(buttongroup, "eas_panel_button")
     if not eas_button then
+        log("Creating button...")
         eas_button = core:get_or_create_component("eas_panel_button", BUTTON_TEMPLATE, buttongroup)
+        if not eas_button then
+            log("Failed to create button")
+            return
+        end
+
         -- Use a generic diplomacy icon
         eas_button:SetImagePath("ui/campaign ui/diplomacy_icons/diplomatic_option_military_alliance.png", 0, false)
         eas_button:SetVisible(true)
         eas_button:Resize(38, 38)
         eas_button:SetTooltipText(get_loc("title"), get_loc("tooltip_open"), true)
+        log("Button created successfully")
+    else
+        log("Button already exists")
     end
 
     -- Listener for Top Button
