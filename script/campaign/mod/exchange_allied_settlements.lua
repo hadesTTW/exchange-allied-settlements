@@ -84,16 +84,14 @@ end
 -- Function: Create Top Left Button
 local function create_top_button()
     local ui_root = core:get_ui_root()
-    local menu_bar = find_child_uicomponent(ui_root, "menu_bar")
-    if not menu_bar then return end
-    local buttongroup = find_child_uicomponent(menu_bar, "buttongroup")
+    local buttongroup = find_uicomponent(ui_root, "menu_bar", "buttongroup")
     if not buttongroup then return end
 
     local eas_button = find_uicomponent(buttongroup, "eas_panel_button")
     if not eas_button then
         eas_button = core:get_or_create_component("eas_panel_button", BUTTON_TEMPLATE, buttongroup)
         -- Use a generic diplomacy icon
-        eas_button:SetImagePath("ui/campaign ui/diplomacy_icons/diplomatic_option_trade_regions.png", 0, false)
+        eas_button:SetImagePath("ui/campaign ui/diplomacy_icons/diplomatic_option_military_alliance.png", 0, false)
         eas_button:SetVisible(true)
         eas_button:Resize(38, 38)
         eas_button:SetTooltipText(get_loc("title"), get_loc("tooltip_open"), true)
@@ -143,33 +141,33 @@ function eas_mod:create_panel()
     uic_panel:SetVisible(true)
     
     -- Find references
-    local panel_frame = find_child_uicomponent(uic_panel, "panel_frame")
-    uic_giver_btn = find_child_uicomponent(panel_frame, "button_select_giver")
-    uic_giver_txt = find_child_uicomponent(uic_giver_btn, "tx_select_giver")
+    local panel_frame = find_uicomponent(uic_panel, "panel_frame")
+    uic_giver_btn = find_uicomponent(panel_frame, "button_select_giver")
+    uic_giver_txt = find_uicomponent(uic_giver_btn, "tx_select_giver")
     
-    uic_region_btn = find_child_uicomponent(panel_frame, "button_select_region")
-    uic_region_txt = find_child_uicomponent(uic_region_btn, "tx_select_region")
+    uic_region_btn = find_uicomponent(panel_frame, "button_select_region")
+    uic_region_txt = find_uicomponent(uic_region_btn, "tx_select_region")
     
-    uic_receiver_btn = find_child_uicomponent(panel_frame, "button_select_receiver")
-    uic_receiver_txt = find_child_uicomponent(uic_receiver_btn, "tx_select_receiver")
+    uic_receiver_btn = find_uicomponent(panel_frame, "button_select_receiver")
+    uic_receiver_txt = find_uicomponent(uic_receiver_btn, "tx_select_receiver")
     
-    local btn_ok_frame = find_child_uicomponent(panel_frame, "button_ok_frame")
-    uic_ok_btn = find_child_uicomponent(btn_ok_frame, "button_ok")
+    local btn_ok_frame = find_uicomponent(panel_frame, "button_ok_frame")
+    uic_ok_btn = find_uicomponent(btn_ok_frame, "button_ok")
     
     -- Set static labels
-    local header = find_child_uicomponent(panel_frame, "header")
+    local header = find_uicomponent(panel_frame, "header")
     if header then
-        local tx_header = find_child_uicomponent(header, "tx_header")
+        local tx_header = find_uicomponent(header, "tx_header")
         if tx_header then tx_header:SetStateText(get_loc("title")) end
     end
     
-    local tx_giver = find_child_uicomponent(panel_frame, "tx_giver_label")
+    local tx_giver = find_uicomponent(panel_frame, "tx_giver_label")
     if tx_giver then tx_giver:SetStateText(get_loc("giver_label")) end
     
-    local tx_region = find_child_uicomponent(panel_frame, "tx_region_label")
+    local tx_region = find_uicomponent(panel_frame, "tx_region_label")
     if tx_region then tx_region:SetStateText(get_loc("region_label")) end
     
-    local tx_receiver = find_child_uicomponent(panel_frame, "tx_receiver_label")
+    local tx_receiver = find_uicomponent(panel_frame, "tx_receiver_label")
     if tx_receiver then tx_receiver:SetStateText(get_loc("receiver_label")) end
     
     -- Setup Listeners for Panel Buttons
@@ -260,7 +258,7 @@ function eas_mod:show_dropdown(type)
     
     if not parent then return end
     
-    local panel_frame = find_child_uicomponent(uic_panel, "panel_frame")
+    local panel_frame = find_uicomponent(uic_panel, "panel_frame")
     -- We attach to panel_frame so it draws on top of panel, but we might need to handle z-order.
     -- Actually, if we attach to root it's safer for z-order.
     local ui_root = core:get_ui_root()
@@ -272,10 +270,10 @@ function eas_mod:show_dropdown(type)
     dropdown:SetVisible(true)
     
     -- Traverse to find list_box (Nested in Template)
-    local context_up = find_child_uicomponent(dropdown, "dropdown_context_up")
-    local listview = find_child_uicomponent(context_up, "listview")
-    local list_clip = find_child_uicomponent(listview, "list_clip")
-    local list_box = find_child_uicomponent(list_clip, "list_box")
+    local context_up = find_uicomponent(dropdown, "dropdown_context_up")
+    local listview = find_uicomponent(context_up, "listview")
+    local list_clip = find_uicomponent(listview, "list_clip")
+    local list_box = find_uicomponent(list_clip, "list_box")
     
     if not list_box then
         -- Error handling
@@ -283,7 +281,7 @@ function eas_mod:show_dropdown(type)
         return
     end
     
-    local template_entry = find_child_uicomponent(list_box, "template_dropdown_entry")
+    local template_entry = find_uicomponent(list_box, "template_dropdown_entry")
     if not template_entry then
         out("EAS Mod: Could not find template_dropdown_entry")
         return
@@ -295,7 +293,7 @@ function eas_mod:show_dropdown(type)
         for i, ally in ipairs(allies) do
             local entry = template_entry:CopyComponent("entry_giver_" .. ally:name())
             entry:SetVisible(true)
-            local tx = find_child_uicomponent(entry, "row_tx")
+            local tx = find_uicomponent(entry, "row_tx")
             tx:SetStateText(common.get_localised_string("factions_screen_name_" .. ally:name()))
         end
     elseif type == "region" then
@@ -312,7 +310,7 @@ function eas_mod:show_dropdown(type)
         for _, region in ipairs(regions) do
             local entry = template_entry:CopyComponent("entry_region_" .. region:cqi())
             entry:SetVisible(true)
-            local tx = find_child_uicomponent(entry, "row_tx")
+            local tx = find_uicomponent(entry, "row_tx")
             tx:SetStateText(common.get_localised_string("regions_onscreen_" .. region:name()))
         end
     elseif type == "receiver" then
@@ -321,7 +319,7 @@ function eas_mod:show_dropdown(type)
             if ally:name() ~= selected_giver_key then
                 local entry = template_entry:CopyComponent("entry_receiver_" .. ally:name())
                 entry:SetVisible(true)
-                local tx = find_child_uicomponent(entry, "row_tx")
+                local tx = find_uicomponent(entry, "row_tx")
                 tx:SetStateText(common.get_localised_string("factions_screen_name_" .. ally:name()))
             end
         end

@@ -1,3 +1,5 @@
+key	text	tooltip
+#Loc;1;text/db/ally_exchange.loc		
 ally_exchange_title	Exchange Allied Settlements	true
 ally_exchange_giver_label	Giver:	true
 ally_exchange_region_label	Region:	true
