@@ -104,7 +104,7 @@ local function EAS_trade_menu_creation_initiate()
     EASMod.EAS_trade_giving_ally_label:Resize(200,50)
     EASMod.EAS_trade_giving_ally_label:SetTextHAlign("centre")
     EASMod.EAS_trade_giving_ally_label:SetCurrentStateImageOpacity(0, 0)
-    EASMod.EAS_trade_giving_ally_label:SetStateText("Giving Ally")
+    EASMod.EAS_trade_giving_ally_label:SetStateText(common.get_localised_string("EAS_trade_panel_giving_ally_loc"))
 
     EASMod.EAS_trade_panel_title_text:CopyComponent("EAS_trade_receiving_ally_label")
     EASMod.EAS_trade_receiving_ally_label = find_child_uicomponent(EASMod.EAS_trade_panel_header,"EAS_trade_receiving_ally_label")
@@ -115,7 +115,7 @@ local function EAS_trade_menu_creation_initiate()
     EASMod.EAS_trade_receiving_ally_label:Resize(200,50)
     EASMod.EAS_trade_receiving_ally_label:SetTextHAlign("centre")
     EASMod.EAS_trade_receiving_ally_label:SetCurrentStateImageOpacity(0, 0)
-    EASMod.EAS_trade_receiving_ally_label:SetStateText("Receiving Ally")
+    EASMod.EAS_trade_receiving_ally_label:SetStateText(common.get_localised_string("EAS_trade_panel_receiving_ally_loc"))
     
     -- Manage multiplayer by creating a list of all players factions
     function EAS_trade_multiplayer_compat()
@@ -471,6 +471,19 @@ local function EAS_trade_menu_creation_initiate()
                         local EAS_trade_giver_flag_path = common.get_context_value("CcoCampaignFaction", cm:get_faction(EAS_giver_faction):command_queue_index(), "FactionFlagDir")
                         EASMod.EAS_trade_faction_our_flag:SetImagePath(EAS_trade_giver_flag_path .. "/mon_64.png", 0, true)
                         
+                        if EAS_receiver_faction == EAS_giver_faction then
+                            for rk, rv in pairs(EAS_receiver_var) do
+                                local rk_faction = rk:sub(1, -10)
+                                if rk_faction ~= EAS_giver_faction then
+                                    EAS_receiver_faction = rk_faction
+                                    EASMod.EAS_trade_receiver_selected_context_display:SetStateText(common.get_localised_string("factions_screen_name_" .. rk_faction))
+                                    local EAS_trade_receiver_flag_path = common.get_context_value("CcoCampaignFaction", cm:get_faction(EAS_receiver_faction):command_queue_index(), "FactionFlagDir")
+                                    EASMod.EAS_trade_faction_their_flag:SetImagePath(EAS_trade_receiver_flag_path .. "/mon_64.png", 0, true)
+                                    break
+                                end
+                            end
+                        end
+                        
                         if EASMod.EAS_update_confirm_state then
                             EASMod.EAS_update_confirm_state()
                         end
@@ -513,6 +526,9 @@ local function EAS_trade_menu_creation_initiate()
                 for k, v in pairs(EAS_receiver_var) do
                     if context:trigger() == k then
                         local faction_key = k:sub(1, -10)
+                        if faction_key == EAS_giver_faction then
+                            return
+                        end
                         EAS_receiver_faction = faction_key
                         EASMod.EAS_trade_receiver_selected_context_display:SetStateText(common.get_localised_string("factions_screen_name_" .. faction_key))
 
@@ -654,7 +670,7 @@ local function EAS_trade_menu_creation_initiate()
     
     -- Update the interface when clicking on any of the region list boxes
     function EASMod.EAS_update_confirm_state()
-        if EAS_selected_region ~= nil then
+        if EAS_selected_region ~= nil and EAS_giver_faction ~= EAS_receiver_faction then
             EASMod.EAS_trade_deal:SetVisible(true)
             EASMod.EAS_trade_deal_details_desc:SetVisible(true)
             
@@ -763,7 +779,7 @@ function EAS_trade_create_listeners()
 		end,
 		function(context)
             if context:trigger() == EASMod.EAS_trade_panel_confirm:Id() then
-                if EAS_selected_region and EAS_receiver_faction then
+                if EAS_selected_region and EAS_receiver_faction and EAS_giver_faction ~= EAS_receiver_faction then
                     cm:transfer_region_to_faction(EAS_selected_region, EAS_receiver_faction)
                 end
         
