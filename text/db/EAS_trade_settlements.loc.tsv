@@ -1,0 +1,40 @@
+key	text	tooltip
+#Loc;1;text/db/EAS_trade_settlements.loc		
+EAS_trade_panel_title_text_loc	Exchange Allied Settlements	true
+EAS_trade_panel_desc_loc	Your Offer	true
+EAS_trade_their_settlements_loc	Your Demand	true
+EAS_trade_deal_loc	Transfer Summary	true
+EAS_trade_mpfactions_desc_label_loc	Choose your faction :	true
+EAS_trade_factions_desc_label_loc	Choose the faction you want to trade with :	true
+no_faction_label_loc	No faction to trade with	true
+EAS_trade_factions_selected_context_display_loc	No faction to trade with	true
+EAS_trade_our_gold_label_loc	[[img:icon_money]][[/img]] Gold	true
+EAS_trade_our_selected_context_display_loc	[[img:icon_money]][[/img]] Gold	true
+EAS_trade_our_desc_label_loc	Current treasury : 	true
+EAS_trade_their_desc_labela_loc	Attitude towards you : 	true
+EAS_trade_desc_labela_loc	\\nSettlement level : 	true
+EAS_trade_desc_labelb_loc	\\nBuildings : 	true
+EAS_trade_their_desc_labelb_loc	\\nWhole province owned	true
+EAS_trade_desc_labeld_loc	gold	true
+EAS_trade_desc_labelc_loc	\\nValue : 	true
+EAS_trade_our_desc_labelb_loc	\\nValue : + 	true
+EAS_trade_desc_labele_loc	attitude over time	true
+EAS_trade_deal_details_desca_loc	[[col:orange]]You give :[[/col]]\\n	true
+EAS_trade_deal_details_descb_loc	gold \\n\\n [[col:green]]You get :[[/col]]\\n	true
+EAS_trade_deal_details_descmp_loc	gold - [[col:red]]You don't have enough gold to confirm this trade ![[/col]]	true
+EAS_trade_deal_details_descc_loc	gold - [[col:red]]You don't have enough gold to confirm this trade ![[/col]]\\n\\n [[col:green]]You get :[[/col]]\\n	true
+EAS_trade_deal_details_descd_loc	\\n\\n [[col:green]]You get :[[/col]]\\n+ 	true
+EAS_trade_deal_details_desce_loc	\\n\\n [[col:green]]You get :[[/col]]\\n	true
+EAS_trade_deal_details_descf_loc	gold\\n\\n [[col:green]]You get :[[/col]]\\n	true
+EAS_trade_their_attitude_label_loc	[[img:icon_non-aggression_pact]][[/img]] Select a City	true
+EAS_trade_their_selected_context_display_loc	[[img:icon_non-aggression_pact]][[/img]] Select a City	true
+EAS_trade_panel_confirma_loc	Select at least one region to trade	true
+EAS_trade_panel_confirmb_loc	Click to confirm the trade	true
+EAS_trade_panel_confirmc_loc	Not enough gold to confirm !	true
+EAS_trade_panel_cancel_loc	Close panel	true
+EAS_trade_panel_button_loc	Exchange Allied Settlements	true
+EAS_trade_deal_last_region_loc	[[col:red]]It's not possible to buy the last region of a faction ![[/col]]	true
+EAS_trade_value_label_value_loc	Value : 	true
+EAS_trade_their_desc_labelc_loc	\\nFaction capital	true
+EAS_trade_deal_details_descg_loc	attitude over time (faction doesn't have enough gold)	true
+EAS_trade_option_menu_button_loc	Trade Options	true
