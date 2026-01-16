@@ -17,7 +17,6 @@ local freiya_their_selected_region = nil
 local freiya_count_our_buildings = 0
 local freiya_count_their_buildings = 0
 
-
 local freiya_available_factions = nil 
 local freiya_player_benefit = nil
 local freiya_ai_min_region = nil
@@ -35,6 +34,10 @@ local freiya_ally_discount = nil
 
 local freiya_trade_current_player = nil
 local freiya_trade_current_player_name = nil
+
+local freiya_giver_faction = nil
+local freiya_receiver_faction = nil
+local freiya_selected_region = nil
 
 
 -- Create the trade settlements menu
@@ -106,8 +109,7 @@ local function freiya_trade_menu_creation_initiate()
     FreiyaTMod.freiya_trade_panel_desc = find_child_uicomponent(FreiyaTMod.freiya_trade_panel_header,"freiya_trade_panel_desc")
     FreiyaTMod.freiya_trade_panel_desc:SetDockOffset(-400,250)
     FreiyaTMod.freiya_trade_panel_desc:Resize(150,150)
-    FreiyaTMod.freiya_trade_panel_desc:SetVisible(true)
-    FreiyaTMod.freiya_trade_panel_desc:SetStateText(common.get_localised_string("freiya_trade_panel_desc_loc"))
+    FreiyaTMod.freiya_trade_panel_desc:SetVisible(false)
     FreiyaTMod.freiya_trade_panel_desc:SetCurrentStateImageOpacity(0, 0)
 	
 	FreiyaTMod.freiya_trade_panel_title_text:CopyComponent("freiya_trade_their_settlements")
@@ -120,11 +122,19 @@ local function freiya_trade_menu_creation_initiate()
 	
 	FreiyaTMod.freiya_trade_panel_title_text:CopyComponent("freiya_trade_deal")
     FreiyaTMod.freiya_trade_deal = find_child_uicomponent(FreiyaTMod.freiya_trade_panel_header,"freiya_trade_deal")
-    FreiyaTMod.freiya_trade_deal:SetDockOffset(0,600)
+    FreiyaTMod.freiya_trade_deal:SetDockOffset(0,50)
     FreiyaTMod.freiya_trade_deal:Resize(150,150)
     FreiyaTMod.freiya_trade_deal:SetVisible(false)
     FreiyaTMod.freiya_trade_deal:SetStateText(common.get_localised_string("freiya_trade_deal_loc"))
     FreiyaTMod.freiya_trade_deal:SetCurrentStateImageOpacity(0, 0)
+
+    FreiyaTMod.freiya_trade_panel_title_text:CopyComponent("freiya_trade_deal_details_desc")
+    FreiyaTMod.freiya_trade_deal_details_desc = find_child_uicomponent(FreiyaTMod.freiya_trade_panel_header,"freiya_trade_deal_details_desc")
+    FreiyaTMod.freiya_trade_deal_details_desc:SetDockOffset(0,150)
+    FreiyaTMod.freiya_trade_deal_details_desc:Resize(500,100)
+    FreiyaTMod.freiya_trade_deal_details_desc:SetVisible(false)
+    FreiyaTMod.freiya_trade_deal_details_desc:SetCurrentStateImageOpacity(0, 0)
+    FreiyaTMod.freiya_trade_deal_details_desc:SetStateText("")
     
     -- Manage multiplayer by creating a list of all players factions
     function freiya_trade_multiplayer_compat()
@@ -134,7 +144,7 @@ local function freiya_trade_menu_creation_initiate()
         -- Create the player faction listbox from the custom xml to have dropdown list with a scroll bar
         FreiyaTMod.freiya_trade_mpfactions_dropdown = core:get_or_create_component("freiya_trade_mpfactions_dropdown","UI/templates/freiya_dropdown_context.twui.xml",FreiyaTMod.freiya_trade_panel_frame)
         FreiyaTMod.freiya_trade_mpfactions_dropdown:SetDockingPoint(5)
-        FreiyaTMod.freiya_trade_mpfactions_dropdown:SetDockOffset(-400,-320)
+        FreiyaTMod.freiya_trade_mpfactions_dropdown:SetDockOffset(0,-350)
         
         FreiyaTMod.freiya_trade_mpfactions_popup_menu = find_child_uicomponent(FreiyaTMod.freiya_trade_mpfactions_dropdown,"popup_menu")
         FreiyaTMod.freiya_trade_mpfactions_listview = find_child_uicomponent(FreiyaTMod.freiya_trade_mpfactions_popup_menu,"listview")
@@ -154,7 +164,7 @@ local function freiya_trade_menu_creation_initiate()
         FreiyaTMod.freiya_trade_mpfactions_desc_label:SetTextVAlign("top")
         FreiyaTMod.freiya_trade_mpfactions_desc_label:SetTextHAlign("centre")
         FreiyaTMod.freiya_trade_mpfactions_desc_label:SetDockingPoint(2)
-        FreiyaTMod.freiya_trade_mpfactions_desc_label:SetDockOffset(-400,100)
+        FreiyaTMod.freiya_trade_mpfactions_desc_label:SetDockOffset(0,20)
         FreiyaTMod.freiya_trade_mpfactions_desc_label:SetStateText(common.get_localised_string("freiya_trade_mpfactions_desc_label_loc"))
         
         -- List all player factions
@@ -252,20 +262,26 @@ local function freiya_trade_menu_creation_initiate()
                         freiya_trade_current_player = cm:get_faction(freiya_selected_mpfaction)
                         freiya_trade_current_player_name = freiya_selected_mpfaction
                         
-                        FreiyaTMod.freiya_trade_our_dropdown:Destroy()
-                        FreiyaTMod.freiya_trade_our_desc_label:Destroy()
-                        FreiyaTMod.freiya_trade_our_value_label:Destroy()
-                        FreiyaTMod.freiya_trade_deal_details_desc:Destroy()
-                        FreiyaTMod.freiya_trade_our_dropdown_preparation()
-                        FreiyaTMod.freiya_trade_our_gold_var:SimulateLClick()
-        
                         local freiya_trade_our_flag_path = common.get_context_value("CcoCampaignFaction", cm:get_faction(freiya_selected_mpfaction):command_queue_index(), "FactionFlagDir")
-                        FreiyaTMod.freiya_trade_faction_our_flag:SetImagePath(freiya_trade_flag_path .. "/mon_64.png", 0, true)
+                        FreiyaTMod.freiya_trade_faction_our_flag:SetImagePath(freiya_trade_our_flag_path .. "/mon_64.png", 0, true)
                         
-                        FreiyaTMod.freiya_trade_factions_dropdown:Destroy()
-                        FreiyaTMod.freiya_trade_factions_desc_label:Destroy()
+                        if FreiyaTMod.freiya_trade_factions_dropdown and FreiyaTMod.freiya_trade_factions_dropdown:IsValid() then
+                            FreiyaTMod.freiya_trade_factions_dropdown:Destroy()
+                        end
+                        if FreiyaTMod.freiya_trade_factions_desc_label and FreiyaTMod.freiya_trade_factions_desc_label:IsValid() then
+                            FreiyaTMod.freiya_trade_factions_desc_label:Destroy()
+                        end
+                        if FreiyaTMod.freiya_trade_receiver_dropdown and FreiyaTMod.freiya_trade_receiver_dropdown:IsValid() then
+                            FreiyaTMod.freiya_trade_receiver_dropdown:Destroy()
+                        end
+                        if FreiyaTMod.freiya_trade_their_dropdown and FreiyaTMod.freiya_trade_their_dropdown:IsValid() then
+                            FreiyaTMod.freiya_trade_their_dropdown:Destroy()
+                        end
+                        
                         freiya_trade_factions_list()
-                        FreiyaTMod.freiya_trade_their_attitude_var:SimulateLClick()
+                        if freiya_find_factions then
+                            FreiyaTMod.freiya_trade_their_dropdown_preparation()
+                        end
                         
                         return
                     end
@@ -276,16 +292,12 @@ local function freiya_trade_menu_creation_initiate()
     end
     
     function freiya_trade_factions_list()
-        -- Create the faction listbox from the custom xml to have dropdown list with a scroll bar
+        local freiya_receiver_var = {}
+        local freiya_receiver_label = {}
+
         FreiyaTMod.freiya_trade_factions_dropdown = core:get_or_create_component("freiya_trade_factions_dropdown","UI/templates/freiya_dropdown_context.twui.xml",FreiyaTMod.freiya_trade_panel_frame)
         FreiyaTMod.freiya_trade_factions_dropdown:SetDockingPoint(5)
-        
-        if cm:is_multiplayer() then
-            FreiyaTMod.freiya_trade_factions_dropdown:SetDockOffset(400,-320)
-        else
-            FreiyaTMod.freiya_trade_factions_dropdown:SetDockOffset(0,-320)
-            --FreiyaTMod.freiya_trade_factions_dropdown:SetDockOffset(400,-320)
-        end
+        FreiyaTMod.freiya_trade_factions_dropdown:SetDockOffset(-350,-250)
         
         FreiyaTMod.freiya_trade_factions_popup_menu = find_child_uicomponent(FreiyaTMod.freiya_trade_factions_dropdown,"popup_menu")
         FreiyaTMod.freiya_trade_factions_listview = find_child_uicomponent(FreiyaTMod.freiya_trade_factions_popup_menu,"listview")
@@ -295,7 +307,7 @@ local function freiya_trade_menu_creation_initiate()
         FreiyaTMod.freiya_trade_factions_template_dropdown_entry:SetVisible(false)	
             
         FreiyaTMod.freiya_trade_factions_selected_context_display = find_child_uicomponent(FreiyaTMod.freiya_trade_factions_dropdown,"selected_context_display")
-
+        
         FreiyaTMod.freiya_trade_factions_selected_context_display:CopyComponent("freiya_trade_factions_desc_label")
         FreiyaTMod.freiya_trade_factions_desc_label = find_child_uicomponent(FreiyaTMod.freiya_trade_factions_dropdown,"freiya_trade_factions_desc_label")
         FreiyaTMod.freiya_trade_panel_header:Adopt(FreiyaTMod.freiya_trade_factions_desc_label:Address())
@@ -305,19 +317,39 @@ local function freiya_trade_menu_creation_initiate()
         FreiyaTMod.freiya_trade_factions_desc_label:SetTextVAlign("top")
         FreiyaTMod.freiya_trade_factions_desc_label:SetTextHAlign("centre")
         FreiyaTMod.freiya_trade_factions_desc_label:SetDockingPoint(2)
+        FreiyaTMod.freiya_trade_factions_desc_label:SetDockOffset(-350,-300)
+        FreiyaTMod.freiya_trade_factions_desc_label:SetStateText("Giver Faction")
+
+        FreiyaTMod.freiya_trade_receiver_dropdown = core:get_or_create_component("freiya_trade_receiver_dropdown","UI/templates/freiya_dropdown_context.twui.xml",FreiyaTMod.freiya_trade_panel_frame)
+        FreiyaTMod.freiya_trade_receiver_dropdown:SetDockingPoint(5)
+        FreiyaTMod.freiya_trade_receiver_dropdown:SetDockOffset(350,-250)
         
-        if cm:is_multiplayer() then
-            FreiyaTMod.freiya_trade_factions_desc_label:SetDockOffset(400,100)
-        else
-            FreiyaTMod.freiya_trade_factions_desc_label:SetDockOffset(0,100)
-            --FreiyaTMod.freiya_trade_factions_desc_label:SetDockOffset(400,100)
-        end
+        FreiyaTMod.freiya_trade_receiver_popup_menu = find_child_uicomponent(FreiyaTMod.freiya_trade_receiver_dropdown,"popup_menu")
+        FreiyaTMod.freiya_trade_receiver_listview = find_child_uicomponent(FreiyaTMod.freiya_trade_receiver_popup_menu,"listview")
+        FreiyaTMod.freiya_trade_receiver_list_clip = find_child_uicomponent(FreiyaTMod.freiya_trade_receiver_listview,"list_clip")
+        FreiyaTMod.freiya_trade_receiver_list_box = find_child_uicomponent(FreiyaTMod.freiya_trade_receiver_list_clip,"list_box")
+        FreiyaTMod.freiya_trade_receiver_template_dropdown_entry = find_child_uicomponent(FreiyaTMod.freiya_trade_receiver_list_box,"template_dropdown_entry")
+        FreiyaTMod.freiya_trade_receiver_template_dropdown_entry:SetVisible(false)
         
-        FreiyaTMod.freiya_trade_factions_desc_label:SetStateText(common.get_localised_string("freiya_trade_factions_desc_label_loc"))
+        FreiyaTMod.freiya_trade_receiver_selected_context_display = find_child_uicomponent(FreiyaTMod.freiya_trade_receiver_dropdown,"selected_context_display")
         
-        -- List all factions that have been met or not, that own at least X settlements and that are at war with the player or not (depending on the options)
+        FreiyaTMod.freiya_trade_receiver_selected_context_display:CopyComponent("freiya_trade_receiver_desc_label")
+        FreiyaTMod.freiya_trade_receiver_desc_label = find_child_uicomponent(FreiyaTMod.freiya_trade_receiver_dropdown,"freiya_trade_receiver_desc_label")
+        FreiyaTMod.freiya_trade_panel_header:Adopt(FreiyaTMod.freiya_trade_receiver_desc_label:Address())
+        FreiyaTMod.freiya_trade_receiver_desc_label:SetCanResizeWidth(true)
+        FreiyaTMod.freiya_trade_receiver_desc_label:SetCanResizeHeight(true)
+        FreiyaTMod.freiya_trade_receiver_desc_label:Resize(500,500)
+        FreiyaTMod.freiya_trade_receiver_desc_label:SetTextVAlign("top")
+        FreiyaTMod.freiya_trade_receiver_desc_label:SetTextHAlign("centre")
+        FreiyaTMod.freiya_trade_receiver_desc_label:SetDockingPoint(2)
+        FreiyaTMod.freiya_trade_receiver_desc_label:SetDockOffset(350,-300)
+        FreiyaTMod.freiya_trade_receiver_desc_label:SetStateText("Receiver Faction")
+        
         local freiya_trade_factions = {}
-        --local player_faction = cm:get_faction(freiya_trade_current_player_name)
+
+        -- Add current player to the list
+        local loc_player_name = common.get_localised_string("factions_screen_name_" .. freiya_trade_current_player:name())
+        table.insert(freiya_trade_factions, { loc_player_name, freiya_trade_current_player:name() } )
 
         if freiya_available_factions == "Met Factions (No War)" or freiya_available_factions == "Met Factions (With War)" then
             local met_factions = freiya_trade_current_player:factions_met()
@@ -351,7 +383,6 @@ local function freiya_trade_menu_creation_initiate()
             end
         end
         
-        -- Sort the factions table or stop the construction of the whole menu if no valid faction has been found
         if #freiya_trade_factions > 0 then
             freiya_find_factions = true
             table.sort(freiya_trade_factions, function (left, right) return left[1] < right[1] end)
@@ -372,20 +403,35 @@ local function freiya_trade_menu_creation_initiate()
             return
         end
         
-        -- Create an entry in the list box for each faction
         for i = 1, #freiya_trade_factions do
-            FreiyaTMod.freiya_trade_factions_template_dropdown_entry:CopyComponent(freiya_trade_factions[i][2])
-            freiya_factions_var[freiya_trade_factions[i][2]] = find_child_uicomponent(FreiyaTMod.freiya_trade_factions_list_box, freiya_trade_factions[i][2])
-            freiya_factions_label[freiya_trade_factions[i][2]] = find_child_uicomponent(freiya_factions_var[freiya_trade_factions[i][2]],"label_context_name")
-            freiya_factions_label[freiya_trade_factions[i][2]]:SetStateText(freiya_trade_factions[i][1])
-            
-            freiya_factions_var[freiya_trade_factions[i][2]]:SetVisible(true)
+            local faction_key = freiya_trade_factions[i][2]
+            local display_name = freiya_trade_factions[i][1]
+
+            FreiyaTMod.freiya_trade_factions_template_dropdown_entry:CopyComponent(faction_key)
+            freiya_factions_var[faction_key] = find_child_uicomponent(FreiyaTMod.freiya_trade_factions_list_box, faction_key)
+            freiya_factions_label[faction_key] = find_child_uicomponent(freiya_factions_var[faction_key],"label_context_name")
+            freiya_factions_label[faction_key]:SetStateText(display_name)
+            freiya_factions_var[faction_key]:SetVisible(true)
+
+            FreiyaTMod.freiya_trade_receiver_template_dropdown_entry:CopyComponent(faction_key .. "_receiver")
+            freiya_receiver_var[faction_key .. "_receiver"] = find_child_uicomponent(FreiyaTMod.freiya_trade_receiver_list_box, faction_key .. "_receiver")
+            freiya_receiver_label[faction_key .. "_receiver"] = find_child_uicomponent(freiya_receiver_var[faction_key .. "_receiver"],"label_context_name")
+            freiya_receiver_label[faction_key .. "_receiver"]:SetStateText(display_name)
+            freiya_receiver_var[faction_key .. "_receiver"]:SetVisible(true)
         end
         
         freiya_selected_faction = freiya_trade_factions[1][2]
+        freiya_giver_faction = freiya_selected_faction
         FreiyaTMod.freiya_trade_factions_selected_context_display:SetStateText(freiya_trade_factions[1][1])
+
+        if #freiya_trade_factions > 1 then
+            freiya_receiver_faction = freiya_trade_factions[2][2]
+            FreiyaTMod.freiya_trade_receiver_selected_context_display:SetStateText(freiya_trade_factions[2][1])
+        else
+            freiya_receiver_faction = freiya_trade_factions[1][2]
+            FreiyaTMod.freiya_trade_receiver_selected_context_display:SetStateText(freiya_trade_factions[1][1])
+        end
         
-        -- Add the faction flags to the panel
         local freiya_trade_flag_path = ""
         FreiyaTMod.freiya_trade_faction_our_flag = core:get_or_create_component("freiya_trade_faction_our_flag","ui/templates/panel_frame.twui.xml", FreiyaTMod.freiya_trade_panel_frame)
         freiya_trade_flag_path = common.get_context_value("CcoCampaignFaction", freiya_trade_current_player:command_queue_index(), "FactionFlagDir")
@@ -404,7 +450,6 @@ local function freiya_trade_menu_creation_initiate()
         FreiyaTMod.freiya_trade_faction_their_flag:SetImagePath(freiya_trade_flag_path .. "/mon_64.png", 0, true)
         
         core:remove_listener("freiya_trade_faction_pressed_listener")
-        -- Add the listeners to update the interface when selecting another faction in the list
         core:add_listener(
             "freiya_trade_faction_pressed_listener",
             "ComponentLClickUp",
@@ -435,23 +480,68 @@ local function freiya_trade_menu_creation_initiate()
                 for k, v in pairs(freiya_factions_var) do
                     if context:trigger() == k then
                         freiya_selected_faction = k
+                        freiya_giver_faction = k
                         FreiyaTMod.freiya_trade_factions_selected_context_display:SetStateText(common.get_localised_string("factions_screen_name_" .. k))
                         
-                        if cm:get_faction(freiya_selected_faction):is_human() then
-                            freiya_player_benefit = "Gold Gains"
-                        else
-                            freiya_player_benefit = "Diplomatic Gains"
+                        if FreiyaTMod.freiya_trade_their_dropdown and FreiyaTMod.freiya_trade_their_dropdown:IsValid() then
+                            FreiyaTMod.freiya_trade_their_dropdown:Destroy()
                         end
-                        
-                        FreiyaTMod.freiya_trade_their_dropdown:Destroy()
-                        FreiyaTMod.freiya_trade_their_desc_label:Destroy()
-                        FreiyaTMod.freiya_trade_their_value_label:Destroy()
+
+                        freiya_selected_region = nil
                         FreiyaTMod.freiya_trade_their_dropdown_preparation()
-                        FreiyaTMod.freiya_trade_their_attitude_var:SimulateLClick()
         
                         local freiya_trade_their_flag_path = common.get_context_value("CcoCampaignFaction", cm:get_faction(freiya_selected_faction):command_queue_index(), "FactionFlagDir")
                         FreiyaTMod.freiya_trade_faction_their_flag:SetImagePath(freiya_trade_their_flag_path .. "/mon_64.png", 0, true)
                         
+                        if FreiyaTMod.freiya_update_confirm_state then
+                            FreiyaTMod.freiya_update_confirm_state()
+                        end
+                        
+                        return
+                    end
+                end
+            end,
+            true
+        )
+
+        core:remove_listener("freiya_trade_receiver_faction_pressed_listener")
+        core:add_listener(
+            "freiya_trade_receiver_faction_pressed_listener",
+            "ComponentLClickUp",
+            function(context)
+                for k, v in pairs(freiya_receiver_var) do
+                    if context.string == k then
+                        return true
+                    end
+                end
+            end,
+            function(context)
+                CampaignUI.TriggerCampaignScriptEvent(0, context.string)
+            end,
+            true
+        )
+        
+        core:add_listener(
+            "freiya_trade_receiver_faction_pressed_listener",
+            "UITrigger",
+            function(context)
+                for k, v in pairs(freiya_receiver_var) do
+                    if context:trigger() == k then
+                        return true
+                    end
+                end
+            end,
+            function(context)
+                for k, v in pairs(freiya_receiver_var) do
+                    if context:trigger() == k then
+                        local faction_key = k:sub(1, -10)
+                        freiya_receiver_faction = faction_key
+                        FreiyaTMod.freiya_trade_receiver_selected_context_display:SetStateText(common.get_localised_string("factions_screen_name_" .. faction_key))
+
+                        if FreiyaTMod.freiya_update_confirm_state then
+                            FreiyaTMod.freiya_update_confirm_state()
+                        end
+
                         return
                     end
                 end
@@ -474,265 +564,17 @@ local function freiya_trade_menu_creation_initiate()
     freiya_trade_factions_list()  
 	
 	
-    -- Create the region listbox of the player's faction from the custom xml to have dropdown list with a scroll bar
-    function FreiyaTMod.freiya_trade_our_dropdown_preparation()
-		local freiya_our_regions_var = {}
-		local freiya_our_regions_label = {}
-		
-        FreiyaTMod.freiya_trade_our_dropdown = core:get_or_create_component("freiya_trade_our_dropdown","UI/templates/freiya_dropdown_context.twui.xml", FreiyaTMod.freiya_trade_panel_frame)
-        FreiyaTMod.freiya_trade_our_dropdown:SetDockingPoint(5)
-        FreiyaTMod.freiya_trade_our_dropdown:SetDockOffset(-500,-100)
 
-        FreiyaTMod.freiya_trade_our_popup_menu = find_child_uicomponent(FreiyaTMod.freiya_trade_our_dropdown,"popup_menu")
-        FreiyaTMod.freiya_trade_our_popup_menu:RegisterTopMost()
-		FreiyaTMod.freiya_trade_our_listview = find_child_uicomponent(FreiyaTMod.freiya_trade_our_popup_menu,"listview")
-		FreiyaTMod.freiya_trade_our_list_clip = find_child_uicomponent(FreiyaTMod.freiya_trade_our_listview,"list_clip")	
-        FreiyaTMod.freiya_trade_our_list_box = find_child_uicomponent(FreiyaTMod.freiya_trade_our_list_clip,"list_box")
-
-        FreiyaTMod.freiya_trade_our_template_dropdown_entry = find_child_uicomponent(FreiyaTMod.freiya_trade_our_list_box,"template_dropdown_entry")
-        FreiyaTMod.freiya_trade_our_template_dropdown_entry:SetVisible(false)
-
-        FreiyaTMod.freiya_trade_our_selected_context_display = find_child_uicomponent(FreiyaTMod.freiya_trade_our_dropdown,"selected_context_display")
-		
-		-- Create the label showing our selected region information
-		FreiyaTMod.freiya_trade_our_selected_context_display:CopyComponent("freiya_trade_our_desc_label")
-		FreiyaTMod.freiya_trade_our_desc_label = find_child_uicomponent(FreiyaTMod.freiya_trade_our_dropdown,"freiya_trade_our_desc_label")
-		FreiyaTMod.freiya_trade_panel_header:Adopt(FreiyaTMod.freiya_trade_our_desc_label:Address())
-		FreiyaTMod.freiya_trade_our_desc_label:SetCanResizeWidth(true)
-		FreiyaTMod.freiya_trade_our_desc_label:SetCanResizeHeight(true)
-		FreiyaTMod.freiya_trade_our_desc_label:Resize(500,500)
-		FreiyaTMod.freiya_trade_our_desc_label:SetDockingPoint(2)
-		FreiyaTMod.freiya_trade_our_desc_label:SetTextHAlign("left")
-		FreiyaTMod.freiya_trade_our_desc_label:SetTextVAlign("top")
-		FreiyaTMod.freiya_trade_our_desc_label:SetDockOffset(-110,345)
-        
-        FreiyaTMod.freiya_trade_our_selected_context_display:CopyComponent("freiya_trade_our_value_label")
-		FreiyaTMod.freiya_trade_our_value_label = find_child_uicomponent(FreiyaTMod.freiya_trade_our_dropdown,"freiya_trade_our_value_label")
-		FreiyaTMod.freiya_trade_panel_header:Adopt(FreiyaTMod.freiya_trade_our_value_label:Address())
-		FreiyaTMod.freiya_trade_our_value_label:SetCanResizeWidth(true)
-		FreiyaTMod.freiya_trade_our_value_label:SetCanResizeHeight(true)
-		FreiyaTMod.freiya_trade_our_value_label:Resize(500,500)
-		FreiyaTMod.freiya_trade_our_value_label:SetDockingPoint(2)
-		FreiyaTMod.freiya_trade_our_value_label:SetTextHAlign("left")
-		FreiyaTMod.freiya_trade_our_value_label:SetTextVAlign("top")
-		FreiyaTMod.freiya_trade_our_value_label:SetDockOffset(-110,460)
-        FreiyaTMod.freiya_trade_our_value_label:SetVisible(false)
-
-		-- Create the label showing the deal summary at the bottom of the panel
-		FreiyaTMod.freiya_trade_our_selected_context_display:CopyComponent("freiya_trade_deal_details_desc")
-		FreiyaTMod.freiya_trade_deal_details_desc = find_child_uicomponent(FreiyaTMod.freiya_trade_our_dropdown,"freiya_trade_deal_details_desc")
-		FreiyaTMod.freiya_trade_panel_header:Adopt(FreiyaTMod.freiya_trade_deal_details_desc:Address())
-		FreiyaTMod.freiya_trade_deal_details_desc:SetCanResizeWidth(true)
-		FreiyaTMod.freiya_trade_deal_details_desc:SetCanResizeHeight(true)
-		FreiyaTMod.freiya_trade_deal_details_desc:Resize(500,500)
-		FreiyaTMod.freiya_trade_deal_details_desc:SetDockingPoint(2)
-		FreiyaTMod.freiya_trade_deal_details_desc:SetTextHAlign("centre")
-		FreiyaTMod.freiya_trade_deal_details_desc:SetTextVAlign("top")
-		FreiyaTMod.freiya_trade_deal_details_desc:SetDockOffset(0,660)
-		FreiyaTMod.freiya_trade_deal_details_desc:SetVisible(false)
-		
-		-- Create and sort the region list of the player's faction
-		local freiya_trade_our_regions = {}
-		--local player_faction = cm:get_faction(freiya_trade_current_player_name)
-		local region_list = freiya_trade_current_player:region_list()
-
-		for i = 0, region_list:num_items() - 1 do
-			local current_region = region_list:item_at(i)
-			local loc_region_name = common.get_localised_string("regions_onscreen_" .. current_region:name())
-			table.insert(freiya_trade_our_regions, { loc_region_name, current_region:name() });
-		end
-		
-		table.sort(freiya_trade_our_regions, function (left, right) return left[1] < right[1] end)
-		
-		-- Create a "Gold" entry in the player dropdown list
-		FreiyaTMod.freiya_trade_our_template_dropdown_entry:CopyComponent("our_gold_var")
-		FreiyaTMod.freiya_trade_our_gold_var = find_child_uicomponent(FreiyaTMod.freiya_trade_our_list_box, "our_gold_var")
-		FreiyaTMod.freiya_trade_our_gold_label = find_child_uicomponent(FreiyaTMod.freiya_trade_our_gold_var, "label_context_name")
-		
-		FreiyaTMod.freiya_trade_our_gold_label:SetStateText(common.get_localised_string("freiya_trade_our_gold_label_loc"))
-		
-		FreiyaTMod.freiya_trade_our_gold_var:SetVisible(true)
-        
-		-- Create an entry in the list box for each region of the player's faction
-		for i = 1, #freiya_trade_our_regions do
-			FreiyaTMod.freiya_trade_our_template_dropdown_entry:CopyComponent(freiya_trade_our_regions[i][2])
-			freiya_our_regions_var[freiya_trade_our_regions[i][2]] = find_child_uicomponent(FreiyaTMod.freiya_trade_our_list_box, freiya_trade_our_regions[i][2])
-			freiya_our_regions_label[freiya_trade_our_regions[i][2]] = find_child_uicomponent(freiya_our_regions_var[freiya_trade_our_regions[i][2]],"label_context_name")
-			freiya_our_regions_label[freiya_trade_our_regions[i][2]]:SetStateText(freiya_trade_our_regions[i][1])
-			freiya_our_regions_var[freiya_trade_our_regions[i][2]]:SetVisible(true)
-		end
-		
-		FreiyaTMod.freiya_trade_our_selected_context_display:SetStateText(common.get_localised_string("freiya_trade_our_selected_context_display_loc"))
-		
-		freiya_selected_our_deal = {}
-		table.insert(freiya_selected_our_deal, "Gold" )
-		FreiyaTMod.freiya_trade_our_desc_label:SetStateText(common.get_localised_string("freiya_trade_our_desc_label_loc") .. freiya_trade_current_player:treasury())
-		
-        core:remove_listener("freiya_trade_our_regions_pressed_listener")
-        
-        -- Add the listeners to update the interface when selecting any entry in the player's faction list
-        core:add_listener(
-		   "freiya_trade_our_regions_pressed_listener",
-		   "ComponentLClickUp",
-			function(context)
-				for k, v in pairs(freiya_our_regions_var) do
-					if context.string == FreiyaTMod.freiya_trade_our_gold_var:Id() or context.string == k then
-						return true
-					end
-				end
-			end,
-            function(context)
-                CampaignUI.TriggerCampaignScriptEvent(0, context.string)
-            end,
-        true
-		)
-		
-		core:add_listener(
-		   "freiya_trade_our_regions_pressed_listener",
-		   "UITrigger",
-			function(context)
-                for k, v in pairs(freiya_our_regions_var) do
-					if context:trigger() == FreiyaTMod.freiya_trade_our_gold_var:Id() or context:trigger() == k then
-						return true
-					end
-				end
-			end,
-			function(context)
-				local our_region_level = nil
-				local their_region_level = nil
-				local whole_province_bonus = 0
-                local whole_province_found = false
-                local capital_bonus = 0
-                local capital_found = false
-				freiya_selected_our_deal = {}
-				freiya_count_our_buildings = 0
-				freiya_count_their_buildings = 0
-				
-				if context:trigger() == FreiyaTMod.freiya_trade_our_gold_var:Id() then
-					FreiyaTMod.freiya_trade_our_selected_context_display:SetStateText(common.get_localised_string("freiya_trade_our_selected_context_display_loc"))
-					
-					table.insert(freiya_selected_our_deal, "Gold" )
-					FreiyaTMod.freiya_trade_our_desc_label:SetStateText(common.get_localised_string("freiya_trade_our_desc_label_loc") .. freiya_trade_current_player:treasury())
-					
-				else
-					-- Define the level and value of the currently selected region
-					for k, v in pairs(freiya_our_regions_var) do
-						if context:trigger() == k then
-							FreiyaTMod.freiya_trade_our_selected_context_display:SetStateText(common.get_localised_string("regions_onscreen_" .. k))
-							table.insert(freiya_selected_our_deal, k )
-							
-							local region_slots = cm:get_region(k):slot_list()
-							for i = 0, region_slots:num_items() - 1 do
-								local current_slot = region_slots:item_at(i)
-								if current_slot:type() == "primary" then
-									if current_slot:has_building() then
-										local building = current_slot:building()
-										local building_name = building:name()
-										if string.match(building_name, "ruin") then
-											our_region_level = 0
-											table.insert(freiya_selected_our_deal, 0 )
-										elseif string.match(building_name, "_1") then
-											our_region_level = 1
-											table.insert(freiya_selected_our_deal, 1 )
-										elseif string.match(building_name, "_2") then
-											our_region_level = 2
-											table.insert(freiya_selected_our_deal, 2 )
-										elseif string.match(building_name, "_3") then
-											our_region_level = 3
-											table.insert(freiya_selected_our_deal, 3 )
-										elseif string.match(building_name, "_4") then
-											our_region_level = 4
-											table.insert(freiya_selected_our_deal, 4 )
-										elseif string.match(building_name, "_5") then
-											our_region_level = 5
-											table.insert(freiya_selected_our_deal, 5 )
-										else
-											our_region_level = 3
-											table.insert(freiya_selected_our_deal, 3 )
-										end
-									end
-								end
-								if current_slot:has_building() then
-									freiya_count_our_buildings = freiya_count_our_buildings + 1
-								end
-							end
-
-							break
-						end
-					end
-				end
-				
-				if freiya_selected_their_deal[1] ~= "Relations" then
-					local province = cm:get_region(freiya_selected_their_deal[1]):province()
-					if cm:num_regions_controlled_in_province_by_faction(province, cm:get_faction(freiya_selected_faction)) == province:regions():num_items() then
-						whole_province_bonus = tonumber(freiya_whole_province_bonus)
-                        whole_province_found = true
-					end
-					
-                    if freiya_selected_their_deal[1] == cm:get_faction(freiya_selected_faction):home_region():name() then
-                        capital_bonus = tonumber(freiya_capital_bonus)
-                        capital_found = true
-                    end
-                    
-					local their_region_slots = cm:get_region(freiya_selected_their_deal[1]):slot_list()
-					for i = 0, their_region_slots:num_items() - 1 do
-						local their_current_slot = their_region_slots:item_at(i);
-						if their_current_slot:type() == "primary" then
-							if their_current_slot:has_building() then
-								local their_building = their_current_slot:building()
-								local their_building_name = their_building:name()
-								if string.match(their_building_name, "ruin") then
-									their_region_level = 0
-									freiya_selected_their_deal[2] = 0
-								elseif string.match(their_building_name, "_1") then
-									their_region_level = 1
-									freiya_selected_their_deal[2] = 1
-								elseif string.match(their_building_name, "_2") then
-									their_region_level = 2
-									freiya_selected_their_deal[2] = 2
-								elseif string.match(their_building_name, "_3") then
-									their_region_level = 3
-									freiya_selected_their_deal[2] = 3
-								elseif string.match(their_building_name, "_4") then
-									their_region_level = 4
-									freiya_selected_their_deal[2] = 4
-								elseif string.match(their_building_name, "_5") then
-									their_region_level = 5
-									freiya_selected_their_deal[2] = 5
-								else
-									their_region_level = 3
-									freiya_selected_their_deal[2] = 3
-								end
-							end
-						end
-						if their_current_slot:has_building() then
-							freiya_count_their_buildings = freiya_count_their_buildings + 1
-						end
-					end							
-				end	
-
-                FreiyaTMod.freiya_update_interface(our_region_level, their_region_level, whole_province_bonus, whole_province_found, capital_bonus, capital_found, freiya_selected_our_deal, freiya_count_our_buildings, freiya_count_their_buildings)
 	
-			end,
-			true
-		)
-		
-    end
-    
 	
-	if freiya_find_factions then
-		FreiyaTMod.freiya_trade_our_dropdown_preparation()
-	end
-
-
-	-- Create the region listbox of the AI's faction from the custom xml to have dropdown list with a scroll bar
+	-- Create the region listbox of the Giver's faction
     function FreiyaTMod.freiya_trade_their_dropdown_preparation()
 		local freiya_their_regions_var = {}
 		local freiya_their_regions_label = {}
 		
         FreiyaTMod.freiya_trade_their_dropdown = core:get_or_create_component("freiya_trade_settings_their_dropdown","UI/templates/freiya_dropdown_context.twui.xml", FreiyaTMod.freiya_trade_panel_frame)
         FreiyaTMod.freiya_trade_their_dropdown:SetDockingPoint(5)
-        FreiyaTMod.freiya_trade_their_dropdown:SetDockOffset(500,-100)
+        FreiyaTMod.freiya_trade_their_dropdown:SetDockOffset(-350,-100)
 
         FreiyaTMod.freiya_trade_their_popup_menu = find_child_uicomponent(FreiyaTMod.freiya_trade_their_dropdown,"popup_menu")
         FreiyaTMod.freiya_trade_their_popup_menu:RegisterTopMost()
@@ -757,18 +599,6 @@ local function freiya_trade_menu_creation_initiate()
 		FreiyaTMod.freiya_trade_their_desc_label:SetTextVAlign("top")
 		FreiyaTMod.freiya_trade_their_desc_label:SetDockOffset(400,345)
         
-        FreiyaTMod.freiya_trade_their_selected_context_display:CopyComponent("freiya_trade_their_value_label")
-		FreiyaTMod.freiya_trade_their_value_label = find_child_uicomponent(FreiyaTMod.freiya_trade_their_dropdown,"freiya_trade_their_value_label")
-		FreiyaTMod.freiya_trade_panel_header:Adopt(FreiyaTMod.freiya_trade_their_value_label:Address())
-		FreiyaTMod.freiya_trade_their_value_label:SetCanResizeWidth(true)
-		FreiyaTMod.freiya_trade_their_value_label:SetCanResizeHeight(true)
-		FreiyaTMod.freiya_trade_their_value_label:Resize(500,500)
-		FreiyaTMod.freiya_trade_their_value_label:SetDockingPoint(2)
-		FreiyaTMod.freiya_trade_their_value_label:SetTextHAlign("left")
-		FreiyaTMod.freiya_trade_their_value_label:SetTextVAlign("top")
-		FreiyaTMod.freiya_trade_their_value_label:SetDockOffset(400,460)
-        FreiyaTMod.freiya_trade_their_value_label:SetVisible(false)
-		
 		-- Create an entry in the list box for each region of the AI's faction
 		local freiya_trade_their_regions = {}
 		local their_region_list = cm:get_faction(freiya_selected_faction):region_list()
@@ -780,19 +610,6 @@ local function freiya_trade_menu_creation_initiate()
 		
 		table.sort(freiya_trade_their_regions, function (left, right) return left[1] < right[1] end)
 		
-		-- Create an "Improve Relations" entry in the AI dropdown list
-        FreiyaTMod.freiya_trade_their_template_dropdown_entry:CopyComponent("their_attitude_var")
-		FreiyaTMod.freiya_trade_their_attitude_var = find_child_uicomponent(FreiyaTMod.freiya_trade_their_list_box, "their_attitude_var")
-		FreiyaTMod.freiya_trade_their_attitude_label = find_child_uicomponent(FreiyaTMod.freiya_trade_their_attitude_var, "label_context_name")
-		
-        if freiya_player_benefit == "Diplomatic Gains" then
-            FreiyaTMod.freiya_trade_their_attitude_label:SetStateText(common.get_localised_string("freiya_trade_their_attitude_label_loc"))
-        else
-            FreiyaTMod.freiya_trade_their_attitude_label:SetStateText(common.get_localised_string("freiya_trade_our_gold_label_loc"))
-        end
-		
-		FreiyaTMod.freiya_trade_their_attitude_var:SetVisible(true)
-		
 		-- Create an entry in the list box for each region of the AI's faction
 		for i = 1, #freiya_trade_their_regions do
 			FreiyaTMod.freiya_trade_their_template_dropdown_entry:CopyComponent(freiya_trade_their_regions[i][2])
@@ -802,14 +619,9 @@ local function freiya_trade_menu_creation_initiate()
 			freiya_their_regions_var[freiya_trade_their_regions[i][2]]:SetVisible(true)
 		end
 
-        if freiya_player_benefit == "Diplomatic Gains" then
-            FreiyaTMod.freiya_trade_their_selected_context_display:SetStateText(common.get_localised_string("freiya_trade_their_selected_context_display_loc"))
-        else
-            FreiyaTMod.freiya_trade_their_selected_context_display:SetStateText(common.get_localised_string("freiya_trade_our_selected_context_display_loc"))
-        end
-		freiya_selected_their_deal = {}
-		table.insert(freiya_selected_their_deal, "Relations" )
-		FreiyaTMod.freiya_trade_their_desc_label:SetStateText(common.get_localised_string("freiya_trade_their_desc_labela_loc") .. math.floor(cm:get_faction(freiya_selected_faction):diplomatic_attitude_towards(freiya_trade_current_player_name)))
+        FreiyaTMod.freiya_trade_their_selected_context_display:SetStateText(common.get_localised_string("freiya_trade_their_selected_context_display_loc"))
+		
+		FreiyaTMod.freiya_trade_their_desc_label:SetStateText("")
 		
 		core:remove_listener("freiya_trade_their_regions_pressed_listener")
 		
@@ -819,7 +631,7 @@ local function freiya_trade_menu_creation_initiate()
 		   "ComponentLClickUp",
 			function(context)
 				for k, v in pairs(freiya_their_regions_var) do
-					if context.string == FreiyaTMod.freiya_trade_their_attitude_var:Id() or context.string == k then
+					if context.string == k then
 						return true
 					end
 				end
@@ -835,137 +647,21 @@ local function freiya_trade_menu_creation_initiate()
 		   "UITrigger",
 			function(context)
 				for k, v in pairs(freiya_their_regions_var) do
-					if context:trigger() == FreiyaTMod.freiya_trade_their_attitude_var:Id() or context:trigger() == k then
+					if context:trigger() == k then
 						return true
 					end
 				end
 			end,
 			function(context)
-				local their_region_level = nil
-				local our_region_level = nil
-				local whole_province_bonus = 0
-                local whole_province_found = false
-                local capital_bonus = 0
-                local capital_found = false
-				freiya_selected_their_deal = {}
-				freiya_count_our_buildings = 0
-				freiya_count_their_buildings = 0
-				
-				if context:trigger() == FreiyaTMod.freiya_trade_their_attitude_var:Id() then
-                    if freiya_player_benefit == "Diplomatic Gains" then
-                        FreiyaTMod.freiya_trade_their_selected_context_display:SetStateText(common.get_localised_string("freiya_trade_their_selected_context_display_loc"))
-                    else
-                        FreiyaTMod.freiya_trade_their_selected_context_display:SetStateText(common.get_localised_string("freiya_trade_our_selected_context_display_loc"))
-                    end
-					table.insert(freiya_selected_their_deal, "Relations" )
-					
-					-- Display the treasury instead of the diplomcy attitude if the chosen faction to trade with is a player
-					if cm:is_multiplayer() and cm:get_faction(freiya_selected_faction):is_human() then
-                        FreiyaTMod.freiya_trade_their_desc_label:SetStateText(common.get_localised_string("freiya_trade_our_desc_label_loc") .. cm:get_faction(freiya_selected_faction):treasury())
-					else
-                        FreiyaTMod.freiya_trade_their_desc_label:SetStateText(common.get_localised_string("freiya_trade_their_desc_labela_loc") .. math.floor(cm:get_faction(freiya_selected_faction):diplomatic_attitude_towards(freiya_trade_current_player_name)))
-                    end
-					
-				else		
-					-- Define the level and value of the currently selected region
-					for k, v in pairs(freiya_their_regions_var) do
-						if context:trigger() == k then
-							FreiyaTMod.freiya_trade_their_selected_context_display:SetStateText(common.get_localised_string("regions_onscreen_" .. k))
-							table.insert(freiya_selected_their_deal, k )
-							
-							local province = cm:get_region(freiya_selected_their_deal[1]):province()
-							if cm:num_regions_controlled_in_province_by_faction(province, cm:get_faction(freiya_selected_faction)) == province:regions():num_items() then
-								whole_province_bonus = tonumber(freiya_whole_province_bonus)
-                                whole_province_found = true
-							end
-                            
-                            if freiya_selected_their_deal[1] == cm:get_faction(freiya_selected_faction):home_region():name() then
-                                capital_bonus = tonumber(freiya_capital_bonus)
-                                capital_found = true
-                            end
-							
-							local region_slots = cm:get_region(k):slot_list()	
-							for i = 0, region_slots:num_items() - 1 do
-								local current_slot = region_slots:item_at(i);
-								if current_slot:type() == "primary" then
-									if current_slot:has_building() then
-										local building = current_slot:building()
-										local building_name = building:name()
-										if string.match(building_name, "ruin") then
-											their_region_level = 0
-											table.insert(freiya_selected_their_deal, 0 )
-										elseif string.match(building_name, "_1") then
-											their_region_level = 1
-											table.insert(freiya_selected_their_deal, 1 )
-										elseif string.match(building_name, "_2") then
-											their_region_level = 2
-											table.insert(freiya_selected_their_deal, 2 )
-										elseif string.match(building_name, "_3") then
-											their_region_level = 3
-											table.insert(freiya_selected_their_deal, 3 )
-										elseif string.match(building_name, "_4") then
-											their_region_level = 4
-											table.insert(freiya_selected_their_deal, 4 )
-										elseif string.match(building_name, "_5") then
-											their_region_level = 5
-											table.insert(freiya_selected_their_deal, 5 )
-										else
-											their_region_level = 3
-											table.insert(freiya_selected_their_deal, 3 )
-										end
-									end
-								end
-								if current_slot:has_building() then
-									freiya_count_their_buildings = freiya_count_their_buildings + 1
-								end
-							end
-							
-							break
-						end
+				for k, v in pairs(freiya_their_regions_var) do
+					if context:trigger() == k then
+                        freiya_selected_region = k
+						FreiyaTMod.freiya_trade_their_selected_context_display:SetStateText(common.get_localised_string("regions_onscreen_" .. k))
+						
+						FreiyaTMod.freiya_update_confirm_state()
+						break
 					end
 				end
-				
-				if freiya_selected_our_deal[1] ~= "Gold" then
-					local our_region_slots = cm:get_region(freiya_selected_our_deal[1]):slot_list()	
-					
-					for i = 0, our_region_slots:num_items() - 1 do
-						local our_current_slot = our_region_slots:item_at(i)
-						if our_current_slot:type() == "primary" then
-							if our_current_slot:has_building() then
-								local our_building = our_current_slot:building()
-								local our_building_name = our_building:name()
-								if string.match(our_building_name, "ruin") then
-									our_region_level = 0
-									freiya_selected_our_deal[2] = 0
-								elseif string.match(our_building_name, "_1") then
-									our_region_level = 1
-									freiya_selected_our_deal[2] = 1
-								elseif string.match(our_building_name, "_2") then
-									our_region_level = 2
-									freiya_selected_our_deal[2] = 2
-								elseif string.match(our_building_name, "_3") then
-									our_region_level = 3
-									freiya_selected_our_deal[2] = 3
-								elseif string.match(our_building_name, "_4") then
-									our_region_level = 4
-									freiya_selected_our_deal[2] = 4
-								elseif string.match(our_building_name, "_5") then
-									our_region_level = 5
-									freiya_selected_our_deal[2] = 5
-								else
-									our_region_level = 3
-									freiya_selected_our_deal[2] = 3
-								end
-							end
-						end
-						if our_current_slot:has_building() then
-							freiya_count_our_buildings = freiya_count_our_buildings + 1
-						end
-					end
-				end
-				
-				FreiyaTMod.freiya_update_interface(our_region_level, their_region_level, whole_province_bonus, whole_province_found, capital_bonus, capital_found, freiya_selected_our_deal, freiya_count_our_buildings, freiya_count_their_buildings)
-
 			end,
 			true
 		)
@@ -977,378 +673,27 @@ local function freiya_trade_menu_creation_initiate()
 	end
 	
     
-    -- Update the interface when clicking on any of the region list boxes and calculate the deal
-    function FreiyaTMod.freiya_update_interface(our_region_level, their_region_level, whole_province_bonus, whole_province_found, capital_bonus, capital_found, freiya_selected_our_deal, freiya_count_our_buildings, freiya_count_their_buildings)
-        local turn_modifier = 0
-        local attitude_mod = 0
-        local vassal_mod = 0
-        local ally_mod = 0
-        freiya_trade_total_cost = 0
-        attitude_not_enough_cash = 0
-        freiya_our_gold_value = 0
-        freiya_our_attitude_value = 0
-        freiya_their_gold_cost = 0
-        freiya_their_attitude_value = 0
-        
-        turn_modifier = 1 + tonumber(freiya_turn_modifier) * cm:turn_number()
-        
-        if cm:get_faction(freiya_selected_faction):is_vassal_of(freiya_trade_current_player) then
-            vassal_mod = tonumber(freiya_vassal_discount)
-        elseif cm:get_faction(freiya_selected_faction):is_ally_vassal_or_client_state_of(freiya_trade_current_player) then
-            ally_mod = tonumber(freiya_ally_discount)
-        end
-
-        -- Calculate the value of the selected settlement
-        if our_region_level ~= nil then
-            -- Player's gold value
-            freiya_our_gold_value = math.floor(tonumber(freiya_region_level_gold[our_region_level + 1]) * turn_modifier * ((freiya_count_our_buildings * tonumber(freiya_gold_per_buildings_modifier)) + 1 ))
-            
-            -- Player's attitude value
-            freiya_our_attitude_value = math.ceil(math.floor(tonumber(freiya_region_level_attitude[our_region_level + 1]) * ((freiya_count_our_buildings * tonumber(freiya_attitude_per_buildings_modifier)) + 1 ))/5)*5
-            
-            if cm:is_multiplayer() and cm:get_faction(freiya_selected_faction):is_human() then
-                if freiya_our_gold_value > 0 and vassal_mod ~= 0 then
-                    freiya_our_gold_value = math.floor(freiya_our_gold_value - (freiya_our_gold_value * vassal_mod))
-                elseif freiya_our_gold_value > 0 and ally_mod ~= 0 then
-                    freiya_our_gold_value = math.floor(freiya_our_gold_value - (freiya_our_gold_value * ally_mod))
-                end
-                
-                if freiya_our_gold_value < 0 then
-                    freiya_our_gold_value = 0
-                end
-                
-                
-                if freiya_our_attitude_value > 0 and vassal_mod ~= 0 then
-                    freiya_our_attitude_value = math.floor(freiya_our_attitude_value - (freiya_our_attitude_value * vassal_mod))
-                elseif freiya_our_attitude_value > 0 and ally_mod ~= 0 then
-                    freiya_our_attitude_value = math.floor(freiya_our_attitude_value - (freiya_our_attitude_value * ally_mod))
-                end
-
-                if freiya_our_attitude_value < 0 then
-                    freiya_our_attitude_value = 0
-                else
-                    freiya_our_attitude_value = math.ceil(freiya_our_attitude_value / 5 ) * 5
-                end
-            end          
-        end
-        
-        if their_region_level ~= nil then
-            if cm:is_multiplayer() and cm:get_faction(freiya_selected_faction):is_human() then
-                freiya_their_gold_cost = math.floor(tonumber(freiya_region_level_gold[their_region_level + 1]) * turn_modifier * ((freiya_count_their_buildings * tonumber(freiya_gold_per_buildings_modifier)) + 1 ))
-                
-                if freiya_their_gold_cost > 0 and vassal_mod ~= 0 then
-                    freiya_their_gold_cost = math.floor(freiya_their_gold_cost - (freiya_their_gold_cost * vassal_mod))
-                elseif freiya_their_gold_cost > 0 and ally_mod ~= 0 then
-                    freiya_their_gold_cost = math.floor(freiya_their_gold_cost - (freiya_their_gold_cost * ally_mod))
-                end
-                
-                if freiya_their_gold_cost < 0 then
-                    freiya_their_gold_cost = 0
-                end
-                
-                
-                freiya_their_attitude_value = math.ceil(math.floor(tonumber(freiya_region_level_attitude[their_region_level + 1]) * ((freiya_count_their_buildings * tonumber(freiya_attitude_per_buildings_modifier)) + 1 ))/5)*5
-                
-                if freiya_their_attitude_value > 0 and vassal_mod ~= 0 then
-                    freiya_their_attitude_value = math.floor(freiya_their_attitude_value - (freiya_their_attitude_value * vassal_mod))
-                elseif freiya_their_attitude_value > 0 and ally_mod ~= 0 then
-                    freiya_their_attitude_value = math.floor(freiya_their_attitude_value - (freiya_their_attitude_value * ally_mod))
-                end
-
-                if freiya_their_attitude_value < 0 then
-                    freiya_their_attitude_value = 0
-                else
-                    freiya_their_attitude_value = math.ceil(freiya_their_attitude_value / 5 ) * 5
-                end
-                
-            else
-                -- AI's gold cost
-                freiya_their_gold_cost = math.floor(tonumber(freiya_region_level_gold[their_region_level + 1]) * turn_modifier * ((freiya_count_their_buildings * tonumber(freiya_gold_per_buildings_modifier)) + 1 ) + whole_province_bonus + capital_bonus)
-
-                if freiya_their_gold_cost > 0 then
-                    attitude_mod = cm:get_faction(freiya_selected_faction):diplomatic_attitude_towards(freiya_trade_current_player_name) * tonumber(freiya_relation_discount)
-                    if (tonumber(freiya_relation_cap)/100) < attitude_mod then
-                        attitude_mod = tonumber(freiya_relation_cap / 100)
-                    elseif attitude_mod < 0 and (tonumber(freiya_relation_cap)/100) * -1 > attitude_mod then
-                        attitude_mod = tonumber(freiya_relation_cap / 100) * -1
-                    end
-                
-                    freiya_their_gold_cost = math.floor(freiya_their_gold_cost - (freiya_their_gold_cost * attitude_mod))
-                    
-                    if freiya_their_gold_cost > 0 and vassal_mod ~= 0 then
-                        freiya_their_gold_cost = math.floor(freiya_their_gold_cost - (freiya_their_gold_cost * vassal_mod))
-                    elseif freiya_their_gold_cost > 0 and ally_mod ~= 0 then
-                        freiya_their_gold_cost = math.floor(freiya_their_gold_cost - (freiya_their_gold_cost * ally_mod))
-                    end
-                end
-                
-                if freiya_their_gold_cost < 0 then
-                    freiya_their_gold_cost = 0
-                end
-                
-                
-                -- AI's attitude cost
-                freiya_their_attitude_value = math.ceil(math.floor(tonumber(freiya_region_level_attitude[their_region_level + 1]) * ((freiya_count_their_buildings * tonumber(freiya_attitude_per_buildings_modifier)) + 1 ) + ( whole_province_bonus + capital_bonus)/(tonumber(freiya_region_level_gold[4])/tonumber(freiya_region_level_attitude[4])))/5)*5
-                
-                if freiya_their_attitude_value > 0 then
-                    attitude_mod = cm:get_faction(freiya_selected_faction):diplomatic_attitude_towards(freiya_trade_current_player_name) * tonumber(freiya_relation_discount)
-                    if (tonumber(freiya_relation_cap)/100) < attitude_mod then
-                        attitude_mod = tonumber(freiya_relation_cap / 100)
-                    end
-                    
-                    freiya_their_attitude_value = math.floor(freiya_their_attitude_value - (freiya_their_attitude_value * attitude_mod))
-
-                    if freiya_their_attitude_value > 0 and vassal_mod ~= 0 then
-                        freiya_their_attitude_value = math.floor(freiya_their_attitude_value - (freiya_their_attitude_value * vassal_mod))
-                    elseif freiya_their_attitude_value > 0 and ally_mod ~= 0 then
-                        freiya_their_attitude_value = math.floor(freiya_their_attitude_value - (freiya_their_attitude_value * ally_mod))
-                    end
-                end
-
-                if freiya_their_attitude_value < 0 then
-                    freiya_their_attitude_value = 0
-                else
-                    freiya_their_attitude_value = math.ceil(freiya_their_attitude_value / 5 ) * 5
-                end
-            end
-        end
-        
-        
-        -- Update the infos and value of region on the labels next to the list boxes
-        if cm:is_multiplayer() and cm:get_faction(freiya_selected_faction):is_human() then
-            if freiya_selected_their_deal[1] ~= "Relations" then
-                FreiyaTMod.freiya_trade_their_desc_label:SetStateText(common.get_localised_string("freiya_trade_our_desc_label_loc") .. cm:get_faction(freiya_selected_faction):treasury() .. common.get_localised_string("freiya_trade_desc_labela_loc") .. their_region_level .. common.get_localised_string("freiya_trade_desc_labelb_loc") .. freiya_count_their_buildings)
-            end
-                                                    
-            if freiya_selected_their_deal[1] ~= "Relations" then
-                FreiyaTMod.freiya_trade_their_value_label:SetStateText(common.get_localised_string("freiya_trade_value_label_value_loc") .. freiya_their_gold_cost .. " " .. common.get_localised_string("freiya_trade_desc_labeld_loc"))
-                FreiyaTMod.freiya_trade_their_value_label:SetVisible(true)
-            else
-                FreiyaTMod.freiya_trade_their_value_label:SetVisible(false)
-            end
-            
-            if freiya_selected_our_deal[1] ~= "Gold"  then
-                FreiyaTMod.freiya_trade_our_desc_label:SetStateText(common.get_localised_string("freiya_trade_our_desc_label_loc") .. freiya_trade_current_player:treasury() .. common.get_localised_string("freiya_trade_desc_labela_loc") .. our_region_level .. common.get_localised_string("freiya_trade_desc_labelb_loc") .. freiya_count_our_buildings)
-                
-                FreiyaTMod.freiya_trade_our_value_label:SetStateText(common.get_localised_string("freiya_trade_value_label_value_loc") .. freiya_our_gold_value .. " " .. common.get_localised_string("freiya_trade_desc_labeld_loc"))
-                FreiyaTMod.freiya_trade_our_value_label:SetVisible(true)
-            end
-        else
-            if freiya_selected_their_deal[1] ~= "Relations" and whole_province_found and not capital_found then
-                FreiyaTMod.freiya_trade_their_desc_label:SetStateText(common.get_localised_string("freiya_trade_their_desc_labela_loc") .. math.floor(cm:get_faction(freiya_selected_faction):diplomatic_attitude_towards(freiya_trade_current_player_name)) .. common.get_localised_string("freiya_trade_desc_labela_loc") .. their_region_level .. common.get_localised_string("freiya_trade_desc_labelb_loc") .. freiya_count_their_buildings .. common.get_localised_string("freiya_trade_their_desc_labelb_loc"))
-                
-            elseif freiya_selected_their_deal[1] ~= "Relations" and whole_province_found and capital_found then
-                FreiyaTMod.freiya_trade_their_desc_label:SetStateText(common.get_localised_string("freiya_trade_their_desc_labela_loc") .. math.floor(cm:get_faction(freiya_selected_faction):diplomatic_attitude_towards(freiya_trade_current_player_name)) .. common.get_localised_string("freiya_trade_desc_labela_loc") .. their_region_level .. common.get_localised_string("freiya_trade_desc_labelb_loc") .. freiya_count_their_buildings .. common.get_localised_string("freiya_trade_their_desc_labelb_loc") .. common.get_localised_string("freiya_trade_their_desc_labelc_loc"))
-                
-            elseif freiya_selected_their_deal[1] ~= "Relations" and not whole_province_found and not capital_found then
-                FreiyaTMod.freiya_trade_their_desc_label:SetStateText(common.get_localised_string("freiya_trade_their_desc_labela_loc") .. math.floor(cm:get_faction(freiya_selected_faction):diplomatic_attitude_towards(freiya_trade_current_player_name)) .. common.get_localised_string("freiya_trade_desc_labela_loc") .. their_region_level .. common.get_localised_string("freiya_trade_desc_labelb_loc") .. freiya_count_their_buildings)
-                
-            elseif freiya_selected_their_deal[1] ~= "Relations" and not whole_province_found and capital_found then
-                FreiyaTMod.freiya_trade_their_desc_label:SetStateText(common.get_localised_string("freiya_trade_their_desc_labela_loc") .. math.floor(cm:get_faction(freiya_selected_faction):diplomatic_attitude_towards(freiya_trade_current_player_name)) .. common.get_localised_string("freiya_trade_desc_labela_loc") .. their_region_level .. common.get_localised_string("freiya_trade_desc_labelb_loc") .. freiya_count_their_buildings .. common.get_localised_string("freiya_trade_their_desc_labelc_loc"))
-            
-            end
-                                                    
-            if freiya_selected_their_deal[1] ~= "Relations" then
-                FreiyaTMod.freiya_trade_their_value_label:SetStateText(common.get_localised_string("freiya_trade_value_label_value_loc") .. freiya_their_gold_cost .. " " .. common.get_localised_string("freiya_trade_desc_labeld_loc"))
-                FreiyaTMod.freiya_trade_their_value_label:SetVisible(true)
-            else
-                FreiyaTMod.freiya_trade_their_value_label:SetVisible(false)
-            end
-            
-            if freiya_selected_our_deal[1] ~= "Gold" and freiya_player_benefit == "Diplomatic Gains" then
-                FreiyaTMod.freiya_trade_our_desc_label:SetStateText(common.get_localised_string("freiya_trade_our_desc_label_loc") .. freiya_trade_current_player:treasury() .. common.get_localised_string("freiya_trade_desc_labela_loc") .. our_region_level .. common.get_localised_string("freiya_trade_desc_labelb_loc") .. freiya_count_our_buildings)
-                
-                FreiyaTMod.freiya_trade_our_value_label:SetStateText(common.get_localised_string("freiya_trade_value_label_value_loc") .. "+" .. freiya_our_attitude_value .. " " .. common.get_localised_string("freiya_trade_desc_labele_loc"))
-                FreiyaTMod.freiya_trade_our_value_label:SetVisible(true)
-                
-            elseif freiya_selected_our_deal[1] ~= "Gold" and freiya_player_benefit == "Gold Gains" then
-                FreiyaTMod.freiya_trade_our_desc_label:SetStateText(common.get_localised_string("freiya_trade_our_desc_label_loc") .. freiya_trade_current_player:treasury() .. common.get_localised_string("freiya_trade_desc_labela_loc") .. our_region_level .. common.get_localised_string("freiya_trade_desc_labelb_loc") .. freiya_count_our_buildings)
-                
-                FreiyaTMod.freiya_trade_our_value_label:SetStateText(common.get_localised_string("freiya_trade_value_label_value_loc") .. freiya_our_gold_value .. " " .. common.get_localised_string("freiya_trade_desc_labeld_loc"))
-                FreiyaTMod.freiya_trade_our_value_label:SetVisible(true)
-            end
-        end
-        
-        if freiya_selected_our_deal[1] == "Gold" then
-            FreiyaTMod.freiya_trade_our_value_label:SetVisible(false)
-        end
-        
-        
-        -- Update the deal summary depending on what entries are selected in both region list boxes
-        if freiya_selected_their_deal[1] ~= "Relations" then
+    -- Update the interface when clicking on any of the region list boxes
+    function FreiyaTMod.freiya_update_confirm_state()
+        if freiya_selected_region ~= nil then
             FreiyaTMod.freiya_trade_deal:SetVisible(true)
             FreiyaTMod.freiya_trade_deal_details_desc:SetVisible(true)
-            FreiyaTMod.freiya_trade_deal_details_desc:SetStateText(common.get_localised_string("freiya_trade_deal_details_desca_loc") .. common.get_localised_string("regions_onscreen_" .. freiya_selected_their_deal[1]))
+            
+            local region_name = common.get_localised_string("regions_onscreen_" .. freiya_selected_region)
+            local giver_name = common.get_localised_string("factions_screen_name_" .. freiya_giver_faction)
+            local receiver_name = common.get_localised_string("factions_screen_name_" .. freiya_receiver_faction)
+            
+            FreiyaTMod.freiya_trade_deal_details_desc:SetStateText("Transfer " .. region_name .. " from " .. giver_name .. " to " .. receiver_name)
+            
             FreiyaTMod.freiya_trade_panel_confirm:SetDisabled(false)
             FreiyaTMod.freiya_trade_panel_confirm:SetImagePath("ui/campaign ui/message_icons/event_diplomacy_positive.png", 0, false)
             FreiyaTMod.freiya_trade_panel_confirm:SetTooltipText(common.get_localised_string("freiya_trade_panel_confirmb_loc"), common.get_localised_string("freiya_trade_panel_confirmb_loc"), true)
-            return
+        else
+             FreiyaTMod.freiya_trade_deal:SetVisible(false)
+             FreiyaTMod.freiya_trade_deal_details_desc:SetVisible(false)
+             FreiyaTMod.freiya_trade_panel_confirm:SetDisabled(true)
+             FreiyaTMod.freiya_trade_panel_confirm:SetImagePath("ui/campaign ui/message_icons/event_diplomacy_negative.png", 0, false)
         end
-					
-        if freiya_selected_our_deal[1] == "Gold" and freiya_selected_their_deal[1] ~= "Relations" then
-            freiya_trade_total_cost = freiya_their_gold_cost
-        
-            -- Blocks the selling of the last settlement
-            --if cm:get_faction(freiya_selected_faction):region_list():num_items() == 1 then
-            --    FreiyaTMod.freiya_trade_deal_details_desc:SetStateText(common.get_localised_string("freiya_trade_deal_last_region_loc"))
-						
-            --    FreiyaTMod.freiya_trade_panel_confirm:SetDisabled(true)
-            --    FreiyaTMod.freiya_trade_panel_confirm:SetImagePath("ui/campaign ui/message_icons/event_diplomacy_negative.png", 0, false)
-            --    FreiyaTMod.freiya_trade_panel_confirm:SetTooltipText(common.get_localised_string("freiya_trade_deal_last_region_loc"), common.get_localised_string("freiya_trade_deal_last_region_loc"), true)
-            --elseif freiya_trade_current_player:treasury() >= freiya_trade_total_cost then
-            if freiya_trade_current_player:treasury() >= freiya_trade_total_cost then
-                FreiyaTMod.freiya_trade_deal_details_desc:SetStateText(common.get_localised_string("freiya_trade_deal_details_desca_loc") .. freiya_trade_total_cost .. " " .. common.get_localised_string("freiya_trade_deal_details_descb_loc") .. common.get_localised_string("regions_onscreen_" .. freiya_selected_their_deal[1]))
-						
-                FreiyaTMod.freiya_trade_panel_confirm:SetDisabled(false)
-                FreiyaTMod.freiya_trade_panel_confirm:SetImagePath("ui/campaign ui/message_icons/event_diplomacy_positive.png", 0, false)
-                FreiyaTMod.freiya_trade_panel_confirm:SetTooltipText(common.get_localised_string("freiya_trade_panel_confirmb_loc"), common.get_localised_string("freiya_trade_panel_confirmb_loc"), true)
-            else
-                FreiyaTMod.freiya_trade_deal_details_desc:SetStateText(common.get_localised_string("freiya_trade_deal_details_desca_loc") .. freiya_trade_total_cost .. " " .. common.get_localised_string("freiya_trade_deal_details_descc_loc") .. common.get_localised_string("regions_onscreen_" .. freiya_selected_their_deal[1]))
-						
-                FreiyaTMod.freiya_trade_panel_confirm:SetDisabled(true)
-                FreiyaTMod.freiya_trade_panel_confirm:SetImagePath("ui/campaign ui/message_icons/event_diplomacy_negative.png", 0, false)
-                FreiyaTMod.freiya_trade_panel_confirm:SetTooltipText(common.get_localised_string("freiya_trade_panel_confirmc_loc"), common.get_localised_string("freiya_trade_panel_confirmc_loc"), true)
-            end	
-					
-        elseif freiya_selected_our_deal[1] ~= "Gold" and freiya_selected_their_deal[1] == "Relations" and freiya_player_benefit == "Diplomatic Gains" then
-            freiya_trade_total_cost = freiya_our_attitude_value
-					
-            FreiyaTMod.freiya_trade_deal_details_desc:SetStateText(common.get_localised_string("freiya_trade_deal_details_desca_loc") .. common.get_localised_string("regions_onscreen_" .. freiya_selected_our_deal[1]) .. common.get_localised_string("freiya_trade_deal_details_descd_loc") .. freiya_trade_total_cost .. " " .. common.get_localised_string("freiya_trade_desc_labele_loc"))
-					
-            FreiyaTMod.freiya_trade_panel_confirm:SetDisabled(false)
-            FreiyaTMod.freiya_trade_panel_confirm:SetImagePath("ui/campaign ui/message_icons/event_diplomacy_positive.png", 0, false)
-            FreiyaTMod.freiya_trade_panel_confirm:SetTooltipText(common.get_localised_string("freiya_trade_panel_confirmb_loc"), common.get_localised_string("freiya_trade_panel_confirmb_loc"), true)
-                                                
-        elseif freiya_selected_our_deal[1] ~= "Gold" and freiya_selected_their_deal[1] == "Relations" and freiya_player_benefit == "Gold Gains" then
-            freiya_trade_total_cost = freiya_our_gold_value
-            
-            if cm:get_faction(freiya_selected_faction):treasury() >= freiya_trade_total_cost then
-                FreiyaTMod.freiya_trade_deal_details_desc:SetStateText(common.get_localised_string("freiya_trade_deal_details_desca_loc") .. common.get_localised_string("regions_onscreen_" .. freiya_selected_our_deal[1]) .. common.get_localised_string("freiya_trade_deal_details_desce_loc") .. freiya_trade_total_cost .. " " .. common.get_localised_string("freiya_trade_desc_labeld_loc"))
-                        
-                FreiyaTMod.freiya_trade_panel_confirm:SetDisabled(false)
-                FreiyaTMod.freiya_trade_panel_confirm:SetImagePath("ui/campaign ui/message_icons/event_diplomacy_positive.png", 0, false)
-                FreiyaTMod.freiya_trade_panel_confirm:SetTooltipText(common.get_localised_string("freiya_trade_panel_confirmb_loc"), common.get_localised_string("freiya_trade_panel_confirmb_loc"), true)
-            elseif cm:get_faction(freiya_selected_faction):treasury() < freiya_trade_total_cost then
-                if cm:is_multiplayer() and cm:get_faction(freiya_selected_faction):is_human() then
-                    FreiyaTMod.freiya_trade_deal_details_desc:SetStateText(common.get_localised_string("freiya_trade_deal_details_desca_loc") .. common.get_localised_string("regions_onscreen_" .. freiya_selected_our_deal[1]) .. common.get_localised_string("freiya_trade_deal_details_desce_loc") .. freiya_trade_total_cost .. " " .. common.get_localised_string("freiya_trade_deal_details_descmp_loc"))
-						
-                    FreiyaTMod.freiya_trade_panel_confirm:SetDisabled(true)
-                    FreiyaTMod.freiya_trade_panel_confirm:SetImagePath("ui/campaign ui/message_icons/event_diplomacy_negative.png", 0, false)
-                    FreiyaTMod.freiya_trade_panel_confirm:SetTooltipText(common.get_localised_string("freiya_trade_panel_confirmc_loc"), common.get_localised_string("freiya_trade_panel_confirmc_loc"), true)
-                else
-                    attitude_not_enough_cash = math.ceil(math.floor((freiya_trade_total_cost - cm:get_faction(freiya_selected_faction):treasury()) / (tonumber(freiya_region_level_gold[4])/tonumber(freiya_region_level_attitude[4])))/5)*5
-                    freiya_trade_total_cost = cm:get_faction(freiya_selected_faction):treasury()
-                    
-                    if freiya_trade_total_cost ~= 0 then
-                        FreiyaTMod.freiya_trade_deal_details_desc:SetStateText(common.get_localised_string("freiya_trade_deal_details_desca_loc") .. common.get_localised_string("regions_onscreen_" .. freiya_selected_our_deal[1]) .. common.get_localised_string("freiya_trade_deal_details_desce_loc") .. freiya_trade_total_cost .. " " .. common.get_localised_string("freiya_trade_desc_labeld_loc") .. "\n+" .. attitude_not_enough_cash .. " " .. common.get_localised_string("freiya_trade_deal_details_descg_loc"))
-                    else
-                        FreiyaTMod.freiya_trade_deal_details_desc:SetStateText(common.get_localised_string("freiya_trade_deal_details_desca_loc") .. common.get_localised_string("regions_onscreen_" .. freiya_selected_our_deal[1]) .. common.get_localised_string("freiya_trade_deal_details_descd_loc") ..  attitude_not_enough_cash .. " " .. common.get_localised_string("freiya_trade_deal_details_descg_loc"))
-                    end
-                            
-                    FreiyaTMod.freiya_trade_panel_confirm:SetDisabled(false)
-                    FreiyaTMod.freiya_trade_panel_confirm:SetImagePath("ui/campaign ui/message_icons/event_diplomacy_positive.png", 0, false)
-                    FreiyaTMod.freiya_trade_panel_confirm:SetTooltipText(common.get_localised_string("freiya_trade_panel_confirmb_loc"), common.get_localised_string("freiya_trade_panel_confirmb_loc"), true)
-                end
-            end
-
-        elseif freiya_player_benefit == "Gold Gains" and freiya_our_gold_value == freiya_their_gold_cost then
-            freiya_trade_total_cost = 0
-				
-            FreiyaTMod.freiya_trade_deal_details_desc:SetStateText(common.get_localised_string("freiya_trade_deal_details_desca_loc") .. common.get_localised_string("regions_onscreen_" .. freiya_selected_our_deal[1]) .. common.get_localised_string("freiya_trade_deal_details_desce_loc") .. common.get_localised_string("regions_onscreen_" .. freiya_selected_their_deal[1]))
-					
-            FreiyaTMod.freiya_trade_panel_confirm:SetDisabled(false)
-            FreiyaTMod.freiya_trade_panel_confirm:SetImagePath("ui/campaign ui/message_icons/event_diplomacy_positive.png", 0, false)
-            FreiyaTMod.freiya_trade_panel_confirm:SetTooltipText(common.get_localised_string("freiya_trade_panel_confirmb_loc"), common.get_localised_string("freiya_trade_panel_confirmb_loc"), true)
-					
-        elseif freiya_player_benefit == "Diplomatic Gains" and freiya_our_attitude_value == freiya_their_attitude_value then
-            freiya_trade_total_cost = 0
-
-            FreiyaTMod.freiya_trade_deal_details_desc:SetStateText(common.get_localised_string("freiya_trade_deal_details_desca_loc") .. common.get_localised_string("regions_onscreen_" .. freiya_selected_our_deal[1]) .. common.get_localised_string("freiya_trade_deal_details_desce_loc") .. common.get_localised_string("regions_onscreen_" .. freiya_selected_their_deal[1]))
-					
-            FreiyaTMod.freiya_trade_panel_confirm:SetDisabled(false)
-            FreiyaTMod.freiya_trade_panel_confirm:SetImagePath("ui/campaign ui/message_icons/event_diplomacy_positive.png", 0, false)
-            FreiyaTMod.freiya_trade_panel_confirm:SetTooltipText(common.get_localised_string("freiya_trade_panel_confirmb_loc"), common.get_localised_string("freiya_trade_panel_confirmb_loc"), true)
-        
-        elseif freiya_player_benefit == "Gold Gains" and freiya_our_gold_value < freiya_their_gold_cost then
-            freiya_trade_total_cost = freiya_their_gold_cost - freiya_our_gold_value
-            if freiya_trade_current_player:treasury() >= freiya_trade_total_cost then
-                FreiyaTMod.freiya_trade_deal_details_desc:SetStateText(common.get_localised_string("freiya_trade_deal_details_desca_loc") .. common.get_localised_string("regions_onscreen_" .. freiya_selected_our_deal[1]) .. "\n" .. freiya_trade_total_cost .. " " .. common.get_localised_string("freiya_trade_deal_details_descf_loc") .. common.get_localised_string("regions_onscreen_" .. freiya_selected_their_deal[1]))
-						
-                FreiyaTMod.freiya_trade_panel_confirm:SetDisabled(false)
-                FreiyaTMod.freiya_trade_panel_confirm:SetImagePath("ui/campaign ui/message_icons/event_diplomacy_positive.png", 0, false)
-                FreiyaTMod.freiya_trade_panel_confirm:SetTooltipText(common.get_localised_string("freiya_trade_panel_confirmb_loc"), common.get_localised_string("freiya_trade_panel_confirmb_loc"), true)
-            else
-                FreiyaTMod.freiya_trade_deal_details_desc:SetStateText(common.get_localised_string("freiya_trade_deal_details_desca_loc") .. common.get_localised_string("regions_onscreen_" .. freiya_selected_our_deal[1]) .. "\n" .. freiya_trade_total_cost .. " " .. common.get_localised_string("freiya_trade_deal_details_descc_loc") .. common.get_localised_string("regions_onscreen_" .. freiya_selected_their_deal[1]))
-						
-                FreiyaTMod.freiya_trade_panel_confirm:SetDisabled(true)
-                FreiyaTMod.freiya_trade_panel_confirm:SetImagePath("ui/campaign ui/message_icons/event_diplomacy_negative.png", 0, false)
-                FreiyaTMod.freiya_trade_panel_confirm:SetTooltipText(common.get_localised_string("freiya_trade_panel_confirmc_loc"), common.get_localised_string("freiya_trade_panel_confirmc_loc"), true)
-            end
-            
-        elseif freiya_player_benefit == "Diplomatic Gains" and freiya_our_attitude_value < freiya_their_attitude_value then
-            freiya_trade_total_cost = math.ceil((freiya_their_attitude_value - freiya_our_attitude_value) * (tonumber(freiya_region_level_gold[4])/tonumber(freiya_region_level_attitude[4])))
-            if freiya_trade_current_player:treasury() >= freiya_trade_total_cost then
-                FreiyaTMod.freiya_trade_deal_details_desc:SetStateText(common.get_localised_string("freiya_trade_deal_details_desca_loc") .. common.get_localised_string("regions_onscreen_" .. freiya_selected_our_deal[1]) .. "\n" .. freiya_trade_total_cost .. " " .. common.get_localised_string("freiya_trade_deal_details_descf_loc") .. common.get_localised_string("regions_onscreen_" .. freiya_selected_their_deal[1]))
-						
-                FreiyaTMod.freiya_trade_panel_confirm:SetDisabled(false)
-                FreiyaTMod.freiya_trade_panel_confirm:SetImagePath("ui/campaign ui/message_icons/event_diplomacy_positive.png", 0, false)
-                FreiyaTMod.freiya_trade_panel_confirm:SetTooltipText(common.get_localised_string("freiya_trade_panel_confirmb_loc"), common.get_localised_string("freiya_trade_panel_confirmb_loc"), true)
-            else
-                FreiyaTMod.freiya_trade_deal_details_desc:SetStateText(common.get_localised_string("freiya_trade_deal_details_desca_loc") .. common.get_localised_string("regions_onscreen_" .. freiya_selected_our_deal[1]) .. "\n" .. freiya_trade_total_cost .. " " .. common.get_localised_string("freiya_trade_deal_details_descc_loc") .. common.get_localised_string("regions_onscreen_" .. freiya_selected_their_deal[1]))
-						
-                FreiyaTMod.freiya_trade_panel_confirm:SetDisabled(true)
-                FreiyaTMod.freiya_trade_panel_confirm:SetImagePath("ui/campaign ui/message_icons/event_diplomacy_negative.png", 0, false)
-                FreiyaTMod.freiya_trade_panel_confirm:SetTooltipText(common.get_localised_string("freiya_trade_panel_confirmc_loc"), common.get_localised_string("freiya_trade_panel_confirmc_loc"), true)
-            end
-                                                
-        elseif freiya_player_benefit == "Gold Gains" and freiya_our_gold_value > freiya_their_gold_cost  then
-            freiya_trade_total_cost = freiya_our_gold_value - freiya_their_gold_cost
-                    
-            if cm:get_faction(freiya_selected_faction):treasury() >= freiya_trade_total_cost then
-                FreiyaTMod.freiya_trade_deal_details_desc:SetStateText(common.get_localised_string("freiya_trade_deal_details_desca_loc") .. common.get_localised_string("regions_onscreen_" .. freiya_selected_our_deal[1]) .. common.get_localised_string("freiya_trade_deal_details_desce_loc") .. common.get_localised_string("regions_onscreen_" .. freiya_selected_their_deal[1]) .. "\n" .. freiya_trade_total_cost .. " " .. common.get_localised_string("freiya_trade_desc_labeld_loc"))
-                                      
-                FreiyaTMod.freiya_trade_panel_confirm:SetDisabled(false)
-                FreiyaTMod.freiya_trade_panel_confirm:SetImagePath("ui/campaign ui/message_icons/event_diplomacy_positive.png", 0, false)
-                FreiyaTMod.freiya_trade_panel_confirm:SetTooltipText(common.get_localised_string("freiya_trade_panel_confirmb_loc"), common.get_localised_string("freiya_trade_panel_confirmb_loc"), true)
-            elseif cm:get_faction(freiya_selected_faction):treasury() < freiya_trade_total_cost then
-                if cm:is_multiplayer() and cm:get_faction(freiya_selected_faction):is_human() then
-                    FreiyaTMod.freiya_trade_deal_details_desc:SetStateText(common.get_localised_string("freiya_trade_deal_details_desca_loc") .. common.get_localised_string("regions_onscreen_" .. freiya_selected_our_deal[1]) .. common.get_localised_string("freiya_trade_deal_details_desce_loc") .. freiya_trade_total_cost .. " " .. common.get_localised_string("freiya_trade_deal_details_descmp_loc"))
-						
-                    FreiyaTMod.freiya_trade_panel_confirm:SetDisabled(true)
-                    FreiyaTMod.freiya_trade_panel_confirm:SetImagePath("ui/campaign ui/message_icons/event_diplomacy_negative.png", 0, false)
-                    FreiyaTMod.freiya_trade_panel_confirm:SetTooltipText(common.get_localised_string("freiya_trade_panel_confirmc_loc"), common.get_localised_string("freiya_trade_panel_confirmc_loc"), true)
-                else
-                    attitude_not_enough_cash = math.ceil(math.floor((freiya_trade_total_cost - cm:get_faction(freiya_selected_faction):treasury()) / (tonumber(freiya_region_level_gold[4])/tonumber(freiya_region_level_attitude[4])))/5)*5
-                    freiya_trade_total_cost = cm:get_faction(freiya_selected_faction):treasury()
-                    
-                    if freiya_trade_total_cost ~= 0 then
-                        FreiyaTMod.freiya_trade_deal_details_desc:SetStateText(common.get_localised_string("freiya_trade_deal_details_desca_loc") .. common.get_localised_string("regions_onscreen_" .. freiya_selected_our_deal[1]) .. common.get_localised_string("freiya_trade_deal_details_desce_loc") .. freiya_trade_total_cost .. " " .. common.get_localised_string("freiya_trade_desc_labeld_loc") .. "\n+" .. attitude_not_enough_cash .. " " .. common.get_localised_string("freiya_trade_deal_details_descg_loc"))
-                    else
-                        FreiyaTMod.freiya_trade_deal_details_desc:SetStateText(common.get_localised_string("freiya_trade_deal_details_desca_loc") .. common.get_localised_string("regions_onscreen_" .. freiya_selected_our_deal[1]) .. common.get_localised_string("freiya_trade_deal_details_descd_loc") .. attitude_not_enough_cash .. " " .. common.get_localised_string("freiya_trade_deal_details_descg_loc"))
-                    end
-                    
-                    FreiyaTMod.freiya_trade_panel_confirm:SetDisabled(false)
-                    FreiyaTMod.freiya_trade_panel_confirm:SetImagePath("ui/campaign ui/message_icons/event_diplomacy_positive.png", 0, false)
-                    FreiyaTMod.freiya_trade_panel_confirm:SetTooltipText(common.get_localised_string("freiya_trade_panel_confirmb_loc"), common.get_localised_string("freiya_trade_panel_confirmb_loc"), true)
-                end
-            end
-           
-        elseif freiya_player_benefit == "Diplomatic Gains" and freiya_our_attitude_value > freiya_their_attitude_value then
-            freiya_trade_total_cost = freiya_our_attitude_value - freiya_their_attitude_value  
-                                                
-            if freiya_trade_total_cost == 0 then
-                freiya_trade_total_cost = 5
-            end
-            FreiyaTMod.freiya_trade_deal_details_desc:SetStateText(common.get_localised_string("freiya_trade_deal_details_desca_loc") .. common.get_localised_string("regions_onscreen_" .. freiya_selected_our_deal[1]) .. common.get_localised_string("freiya_trade_deal_details_desce_loc") .. common.get_localised_string("regions_onscreen_" .. freiya_selected_their_deal[1]) .. "\n+" .. freiya_trade_total_cost .. " " .. common.get_localised_string("freiya_trade_desc_labele_loc"))
-					
-            FreiyaTMod.freiya_trade_panel_confirm:SetDisabled(false)
-            FreiyaTMod.freiya_trade_panel_confirm:SetImagePath("ui/campaign ui/message_icons/event_diplomacy_positive.png", 0, false)
-            FreiyaTMod.freiya_trade_panel_confirm:SetTooltipText(common.get_localised_string("freiya_trade_panel_confirmb_loc"), common.get_localised_string("freiya_trade_panel_confirmb_loc"), true)
-        end                                       
-
-        FreiyaTMod.freiya_trade_deal:SetVisible(true)
-        FreiyaTMod.freiya_trade_deal_details_desc:SetVisible(true)
-    
     end
     
     -- Create the confirm button
@@ -1439,9 +784,8 @@ function freiya_trade_create_listeners()
 		end,
 		function(context)
             if context:trigger() == FreiyaTMod.freiya_trade_panel_confirm:Id() then
-                local target_region = freiya_selected_their_deal[1]
-                if target_region and target_region ~= "Relations" then
-                    cm:transfer_region_to_faction(target_region, freiya_trade_current_player_name)
+                if freiya_selected_region and freiya_receiver_faction then
+                    cm:transfer_region_to_faction(freiya_selected_region, freiya_receiver_faction)
                 end
         
                 -- Destroy the trade menu
