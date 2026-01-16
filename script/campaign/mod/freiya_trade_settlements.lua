@@ -56,8 +56,7 @@ local function freiya_trade_menu_creation_initiate()
 	FreiyaTMod.freiya_trade_panel_header = find_child_uicomponent(FreiyaTMod.freiya_trade_panel_frame,"header")
 	FreiyaTMod.freiya_trade_panel_title_text = find_child_uicomponent(FreiyaTMod.freiya_trade_panel_header,"tx_header")
     FreiyaTMod.freiya_trade_panel_title_text:SetTextHAlign("centre")
-	FreiyaTMod.freiya_trade_panel_title_text:SetTextXOffset(0,-10)
-	FreiyaTMod.freiya_trade_panel_title_text:SetTextYOffset(0,-10)
+	FreiyaTMod.freiya_trade_panel_title_text:SetDockOffset(0,-10)
     FreiyaTMod.freiya_trade_panel_title_text:SetCanResizeWidth(true)
     FreiyaTMod.freiya_trade_panel_title_text:SetCanResizeHeight(true)
     FreiyaTMod.freiya_trade_panel_title_text:Resize(600,80)
@@ -332,29 +331,31 @@ local function freiya_trade_menu_creation_initiate()
             local met_factions = freiya_trade_current_player:factions_met()
             for i = 0, met_factions:num_items() - 1 do
                 local current_faction = met_factions:item_at(i)
-            
-                if freiya_available_factions == "Met Factions (No War)" and not freiya_trade_current_player:at_war_with(current_faction) and current_faction:region_list():num_items() >= tonumber(freiya_ai_min_region) then
-                    local loc_faction_name = common.get_localised_string("factions_screen_name_" .. current_faction:name())
-                    table.insert(freiya_trade_factions, { loc_faction_name, current_faction:name() } )
-                elseif freiya_available_factions == "Met Factions (With War)" and current_faction:region_list():num_items() >= tonumber(freiya_ai_min_region) then
-                    local loc_faction_name = common.get_localised_string("factions_screen_name_" .. current_faction:name())
-                    table.insert(freiya_trade_factions, { loc_faction_name, current_faction:name() } )
+                if freiya_trade_current_player ~= current_faction and freiya_trade_current_player:is_ally_vassal_or_client_state_of(current_faction) then
+                    if freiya_available_factions == "Met Factions (No War)" and not freiya_trade_current_player:at_war_with(current_faction) and current_faction:region_list():num_items() >= tonumber(freiya_ai_min_region) then
+                        local loc_faction_name = common.get_localised_string("factions_screen_name_" .. current_faction:name())
+                        table.insert(freiya_trade_factions, { loc_faction_name, current_faction:name() } )
+                    elseif freiya_available_factions == "Met Factions (With War)" and current_faction:region_list():num_items() >= tonumber(freiya_ai_min_region) then
+                        local loc_faction_name = common.get_localised_string("factions_screen_name_" .. current_faction:name())
+                        table.insert(freiya_trade_factions, { loc_faction_name, current_faction:name() } )
+                    end
                 end
             end
         elseif freiya_available_factions == "All Factions (No War)" or freiya_available_factions == "All Factions (With War)" then
             local all_factions = cm:model():world():faction_list()
             for i = 0, all_factions:num_items() - 1 do
                 local current_faction = all_factions:item_at(i)
-            
-                if freiya_available_factions == "All Factions (No War)" and not freiya_trade_current_player:at_war_with(current_faction) and current_faction:region_list():num_items() >= tonumber(freiya_ai_min_region) and freiya_trade_current_player ~= current_faction then
-                    local loc_faction_name = common.get_localised_string("factions_screen_name_" .. current_faction:name())
-                    if loc_faction_name ~= "" then
-                        table.insert(freiya_trade_factions, { loc_faction_name, current_faction:name() } )
-                    end
-                elseif freiya_available_factions == "All Factions (With War)" and current_faction:region_list():num_items() >= tonumber(freiya_ai_min_region) and freiya_trade_current_player ~= current_faction then
-                    local loc_faction_name = common.get_localised_string("factions_screen_name_" .. current_faction:name())
-                    if loc_faction_name ~= "" then
-                        table.insert(freiya_trade_factions, { loc_faction_name, current_faction:name() } )
+                if freiya_trade_current_player ~= current_faction and freiya_trade_current_player:is_ally_vassal_or_client_state_of(current_faction) then
+                    if freiya_available_factions == "All Factions (No War)" and not freiya_trade_current_player:at_war_with(current_faction) and current_faction:region_list():num_items() >= tonumber(freiya_ai_min_region) then
+                        local loc_faction_name = common.get_localised_string("factions_screen_name_" .. current_faction:name())
+                        if loc_faction_name ~= "" then
+                            table.insert(freiya_trade_factions, { loc_faction_name, current_faction:name() } )
+                        end
+                    elseif freiya_available_factions == "All Factions (With War)" and current_faction:region_list():num_items() >= tonumber(freiya_ai_min_region) then
+                        local loc_faction_name = common.get_localised_string("factions_screen_name_" .. current_faction:name())
+                        if loc_faction_name ~= "" then
+                            table.insert(freiya_trade_factions, { loc_faction_name, current_faction:name() } )
+                        end
                     end
                 end
             end
