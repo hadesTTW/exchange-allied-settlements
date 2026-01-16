@@ -3,38 +3,9 @@ local root = FreiyaTMod.root
 
 local freiya_selected_faction = nil
 local freiya_find_factions = false
-local freiya_selected_our_deal = {}
-local freiya_selected_their_deal = {}
-local freiya_trade_total_cost = 0
-local attitude_not_enough_cash = 0
-local freiya_our_gold_value = 0
-local freiya_our_attitude_value = 0
-local freiya_their_gold_cost = 0
-local freiya_their_attitude_value = 0
-        
-local freiya_our_selected_region = nil
-local freiya_their_selected_region = nil
-local freiya_count_our_buildings = 0
-local freiya_count_their_buildings = 0
-
 local freiya_available_factions = nil 
-local freiya_player_benefit = nil
 local freiya_ai_min_region = nil
-local freiya_whole_province_bonus = nil
-local freiya_capital_bonus = nil
-local freiya_turn_modifier = nil
-local freiya_gold_per_buildings_modifier = nil
-local freiya_attitude_per_buildings_modifier = nil
-local freiya_region_level_gold = {}
-local freiya_region_level_attitude = {}
-local freiya_relation_discount = nil
-local freiya_relation_cap = nil
-local freiya_vassal_discount = nil
-local freiya_ally_discount = nil
-
 local freiya_trade_current_player = nil
-local freiya_trade_current_player_name = nil
-
 local freiya_giver_faction = nil
 local freiya_receiver_faction = nil
 local freiya_selected_region = nil
@@ -43,40 +14,24 @@ local freiya_selected_region = nil
 -- Create the trade settlements menu
 local function freiya_trade_menu_creation_initiate()
 	local freiya_factions_var = {}
-	local freiya_factions_label = {}
 	freiya_selected_faction = nil
 	freiya_find_factions = false
-	freiya_selected_our_deal = {}
-	freiya_selected_their_deal = {}
-	freiya_trade_total_cost = 0
-	freiya_our_selected_region = nil
-	freiya_their_selected_region = nil
-	freiya_count_our_buildings = 0
-	freiya_count_their_buildings = 0
 	freiya_trade_current_player = cm:get_local_faction(true)
-	freiya_trade_current_player_name = cm:get_local_faction_name(true)
 	
     
     -- Set default modifiers
     freiya_available_factions = "Met Factions (No War)"
-    freiya_player_benefit = "Diplomatic Gains"
     freiya_ai_min_region = "1"
-    freiya_whole_province_bonus = "10000"
-    freiya_capital_bonus = "10000"
-    freiya_turn_modifier = "0.005"
-    freiya_gold_per_buildings_modifier = "0.01"
-    freiya_attitude_per_buildings_modifier = "0.05"
-    freiya_region_level_gold = {"3000", "7000", "11000", "15000", "19000", "23000"}
-    freiya_region_level_attitude = {"5", "15", "25", "35", "45", "55"}
-    freiya_relation_discount = "0.001"
-    freiya_relation_cap = "35"
-    freiya_vassal_discount = "0.3"
-    freiya_ally_discount = "0.15"
     
     -- Create the core of the menu from an existing xml
     FreiyaTMod.freiya_trade_panel = core:get_or_create_component("freiya_trade_panel","ui/campaign ui/freiya_main_temples_of_the_old_ones.twui.xml", root)
     
     FreiyaTMod.freiya_trade_panel_frame = find_child_uicomponent(FreiyaTMod.freiya_trade_panel,"panel_frame")
+    local freiya_trade_panel_frame_width = FreiyaTMod.freiya_trade_panel_frame:Width()
+    FreiyaTMod.freiya_trade_panel_frame:SetCanResizeWidth(true)
+    FreiyaTMod.freiya_trade_panel_frame:SetCanResizeHeight(true)
+    FreiyaTMod.freiya_trade_panel_frame:Resize(freiya_trade_panel_frame_width, 600)
+    FreiyaTMod.freiya_trade_panel_frame:SetDockingPoint(5)
 
     -- Destroy unused elements of the menu
 	FreiyaTMod.freiya_trade_panel_frame_fullscreen_underlay = find_child_uicomponent(FreiyaTMod.freiya_trade_panel,"fullscreen_underlay")
@@ -136,10 +91,29 @@ local function freiya_trade_menu_creation_initiate()
     FreiyaTMod.freiya_trade_deal_details_desc:SetCurrentStateImageOpacity(0, 0)
     FreiyaTMod.freiya_trade_deal_details_desc:SetStateText("")
     
+    FreiyaTMod.freiya_trade_panel_title_text:CopyComponent("freiya_trade_giving_ally_label")
+    FreiyaTMod.freiya_trade_giving_ally_label = find_child_uicomponent(FreiyaTMod.freiya_trade_panel_header,"freiya_trade_giving_ally_label")
+    FreiyaTMod.freiya_trade_giving_ally_label:SetDockingPoint(1)
+    FreiyaTMod.freiya_trade_giving_ally_label:SetDockOffset(350,780)
+    FreiyaTMod.freiya_trade_giving_ally_label:SetCanResizeWidth(true)
+    FreiyaTMod.freiya_trade_giving_ally_label:SetCanResizeHeight(true)
+    FreiyaTMod.freiya_trade_giving_ally_label:Resize(200,50)
+    FreiyaTMod.freiya_trade_giving_ally_label:SetTextHAlign("centre")
+    FreiyaTMod.freiya_trade_giving_ally_label:SetStateText("Giving Ally")
+
+    FreiyaTMod.freiya_trade_panel_title_text:CopyComponent("freiya_trade_receiving_ally_label")
+    FreiyaTMod.freiya_trade_receiving_ally_label = find_child_uicomponent(FreiyaTMod.freiya_trade_panel_header,"freiya_trade_receiving_ally_label")
+    FreiyaTMod.freiya_trade_receiving_ally_label:SetDockingPoint(1)
+    FreiyaTMod.freiya_trade_receiving_ally_label:SetDockOffset(1150,110)
+    FreiyaTMod.freiya_trade_receiving_ally_label:SetCanResizeWidth(true)
+    FreiyaTMod.freiya_trade_receiving_ally_label:SetCanResizeHeight(true)
+    FreiyaTMod.freiya_trade_receiving_ally_label:Resize(200,50)
+    FreiyaTMod.freiya_trade_receiving_ally_label:SetTextHAlign("centre")
+    FreiyaTMod.freiya_trade_receiving_ally_label:SetStateText("Receiving Ally")
+    
     -- Manage multiplayer by creating a list of all players factions
     function freiya_trade_multiplayer_compat()
         local freiya_mpfactions_var = {}
-        local freiya_mpfactions_label = {}
         
         -- Create the player faction listbox from the custom xml to have dropdown list with a scroll bar
         FreiyaTMod.freiya_trade_mpfactions_dropdown = core:get_or_create_component("freiya_trade_mpfactions_dropdown","UI/templates/freiya_dropdown_context.twui.xml",FreiyaTMod.freiya_trade_panel_frame)
@@ -202,8 +176,7 @@ local function freiya_trade_menu_creation_initiate()
         for i = 1, #freiya_trade_mpfactions do
             FreiyaTMod.freiya_trade_mpfactions_template_dropdown_entry:CopyComponent(freiya_trade_mpfactions[i][2] .. "mp")
             freiya_mpfactions_var[freiya_trade_mpfactions[i][2] .. "mp"] = find_child_uicomponent(FreiyaTMod.freiya_trade_mpfactions_list_box, freiya_trade_mpfactions[i][2] .. "mp")
-            freiya_mpfactions_label[freiya_trade_mpfactions[i][2] .. "mp"] = find_child_uicomponent(freiya_mpfactions_var[freiya_trade_mpfactions[i][2] .. "mp"],"label_context_name")
-            freiya_mpfactions_label[freiya_trade_mpfactions[i][2] .. "mp"]:SetStateText(freiya_trade_mpfactions[i][1])
+            find_child_uicomponent(freiya_mpfactions_var[freiya_trade_mpfactions[i][2] .. "mp"],"label_context_name"):SetStateText(freiya_trade_mpfactions[i][1])
             
             freiya_mpfactions_var[freiya_trade_mpfactions[i][2] .. "mp"]:SetVisible(true)
         end
@@ -222,7 +195,6 @@ local function freiya_trade_menu_creation_initiate()
         FreiyaTMod.freiya_trade_faction_our_flag:SetImagePath(freiya_trade_flag_path .. "/mon_64.png", 0, true)
         
         freiya_trade_current_player = cm:get_faction(freiya_selected_mpfaction)
-        freiya_trade_current_player_name = freiya_selected_mpfaction
         
         core:remove_listener("freiya_trade_mpfaction_pressed_listener")
         
@@ -260,7 +232,6 @@ local function freiya_trade_menu_creation_initiate()
                         FreiyaTMod.freiya_trade_mpfactions_selected_context_display:SetStateText(common.get_localised_string("factions_screen_name_" .. k:sub(1, -3)))
                         
                         freiya_trade_current_player = cm:get_faction(freiya_selected_mpfaction)
-                        freiya_trade_current_player_name = freiya_selected_mpfaction
                         
                         local freiya_trade_our_flag_path = common.get_context_value("CcoCampaignFaction", cm:get_faction(freiya_selected_mpfaction):command_queue_index(), "FactionFlagDir")
                         FreiyaTMod.freiya_trade_faction_our_flag:SetImagePath(freiya_trade_our_flag_path .. "/mon_64.png", 0, true)
@@ -293,7 +264,8 @@ local function freiya_trade_menu_creation_initiate()
     
     function freiya_trade_factions_list()
         local freiya_receiver_var = {}
-        local freiya_receiver_label = {}
+        
+        -- Create the factions listbox from the custom xml to have dropdown list with a scroll bar
 
         FreiyaTMod.freiya_trade_factions_dropdown = core:get_or_create_component("freiya_trade_factions_dropdown","UI/templates/freiya_dropdown_context.twui.xml",FreiyaTMod.freiya_trade_panel_frame)
         FreiyaTMod.freiya_trade_factions_dropdown:SetDockingPoint(5)
@@ -409,14 +381,12 @@ local function freiya_trade_menu_creation_initiate()
 
             FreiyaTMod.freiya_trade_factions_template_dropdown_entry:CopyComponent(faction_key)
             freiya_factions_var[faction_key] = find_child_uicomponent(FreiyaTMod.freiya_trade_factions_list_box, faction_key)
-            freiya_factions_label[faction_key] = find_child_uicomponent(freiya_factions_var[faction_key],"label_context_name")
-            freiya_factions_label[faction_key]:SetStateText(display_name)
+            find_child_uicomponent(freiya_factions_var[faction_key],"label_context_name"):SetStateText(display_name)
             freiya_factions_var[faction_key]:SetVisible(true)
 
             FreiyaTMod.freiya_trade_receiver_template_dropdown_entry:CopyComponent(faction_key .. "_receiver")
             freiya_receiver_var[faction_key .. "_receiver"] = find_child_uicomponent(FreiyaTMod.freiya_trade_receiver_list_box, faction_key .. "_receiver")
-            freiya_receiver_label[faction_key .. "_receiver"] = find_child_uicomponent(freiya_receiver_var[faction_key .. "_receiver"],"label_context_name")
-            freiya_receiver_label[faction_key .. "_receiver"]:SetStateText(display_name)
+            find_child_uicomponent(freiya_receiver_var[faction_key .. "_receiver"],"label_context_name"):SetStateText(display_name)
             freiya_receiver_var[faction_key .. "_receiver"]:SetVisible(true)
         end
         
@@ -573,7 +543,6 @@ local function freiya_trade_menu_creation_initiate()
 	-- Create the region listbox of the Giver's faction
     function FreiyaTMod.freiya_trade_their_dropdown_preparation()
 		local freiya_their_regions_var = {}
-		local freiya_their_regions_label = {}
 		
         FreiyaTMod.freiya_trade_their_dropdown = core:get_or_create_component("freiya_trade_settings_their_dropdown","UI/templates/freiya_dropdown_context.twui.xml", FreiyaTMod.freiya_trade_panel_frame)
         FreiyaTMod.freiya_trade_their_dropdown:SetDockingPoint(5)
@@ -617,8 +586,7 @@ local function freiya_trade_menu_creation_initiate()
 		for i = 1, #freiya_trade_their_regions do
 			FreiyaTMod.freiya_trade_their_template_dropdown_entry:CopyComponent(freiya_trade_their_regions[i][2])
 			freiya_their_regions_var[freiya_trade_their_regions[i][2]] = find_child_uicomponent(FreiyaTMod.freiya_trade_their_list_box, freiya_trade_their_regions[i][2])
-			freiya_their_regions_label[freiya_trade_their_regions[i][2]] = find_child_uicomponent(freiya_their_regions_var[freiya_trade_their_regions[i][2]],"label_context_name")
-			freiya_their_regions_label[freiya_trade_their_regions[i][2]]:SetStateText(freiya_trade_their_regions[i][1])
+			find_child_uicomponent(freiya_their_regions_var[freiya_trade_their_regions[i][2]],"label_context_name"):SetStateText(freiya_trade_their_regions[i][1])
 			freiya_their_regions_var[freiya_trade_their_regions[i][2]]:SetVisible(true)
 		end
 
@@ -792,12 +760,6 @@ function freiya_trade_create_listeners()
                 end
         
                 -- Destroy the trade menu
-                freiya_trade_total_cost = 0
-                attitude_not_enough_cash = 0
-                freiya_our_gold_value = 0
-                freiya_our_attitude_value = 0
-                freiya_their_gold_cost = 0
-                freiya_their_attitude_value = 0
         
                 FreiyaTMod.freiya_trade_panel:SetVisible(false)
                 FreiyaTMod.freiya_trade_panel:Destroy()

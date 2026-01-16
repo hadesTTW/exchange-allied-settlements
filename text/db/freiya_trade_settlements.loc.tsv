@@ -1,9 +1,9 @@
 key	text	tooltip
 #Loc;1;text/db/freiya_trade_settlements.loc		
-freiya_trade_panel_title_text_loc	Trade Settlements	true
+freiya_trade_panel_title_text_loc	Exchange Allied Settlements	true
 freiya_trade_panel_desc_loc	Your Offer	true
 freiya_trade_their_settlements_loc	Your Demand	true
-freiya_trade_deal_loc	Trade Summary	true
+freiya_trade_deal_loc	Transfer Summary	true
 freiya_trade_mpfactions_desc_label_loc	Choose your faction :	true
 freiya_trade_factions_desc_label_loc	Choose the faction you want to trade with :	true
 no_faction_label_loc	No faction to trade with	true
@@ -32,7 +32,7 @@ freiya_trade_panel_confirma_loc	Select at least one region to trade	true
 freiya_trade_panel_confirmb_loc	Click to confirm the trade	true
 freiya_trade_panel_confirmc_loc	Not enough gold to confirm !	true
 freiya_trade_panel_cancel_loc	Close panel	true
-freiya_trade_panel_button_loc	Trade Settlements	true
+freiya_trade_panel_button_loc	Exchange Allied Settlements	true
 freiya_trade_deal_last_region_loc	[[col:red]]It's not possible to buy the last region of a faction ![[/col]]	true
 freiya_trade_value_label_value_loc	Value : 	true
 freiya_trade_their_desc_labelc_loc	\\nFaction capital	true
