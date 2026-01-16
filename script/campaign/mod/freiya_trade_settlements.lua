@@ -116,8 +116,8 @@ local function freiya_trade_menu_creation_initiate()
     FreiyaTMod.freiya_trade_their_settlements = find_child_uicomponent(FreiyaTMod.freiya_trade_panel_header,"freiya_trade_their_settlements")
     FreiyaTMod.freiya_trade_their_settlements:SetDockOffset(400,250)
     FreiyaTMod.freiya_trade_their_settlements:Resize(150,150)
-    FreiyaTMod.freiya_trade_their_settlements:SetVisible(true)
-    FreiyaTMod.freiya_trade_their_settlements:SetStateText(common.get_localised_string("freiya_trade_their_settlements_loc"))
+    FreiyaTMod.freiya_trade_their_settlements:SetVisible(false)
+    FreiyaTMod.freiya_trade_their_settlements:SetStateText("")
     FreiyaTMod.freiya_trade_their_settlements:SetCurrentStateImageOpacity(0, 0)
 	
 	FreiyaTMod.freiya_trade_panel_title_text:CopyComponent("freiya_trade_deal")
@@ -297,7 +297,7 @@ local function freiya_trade_menu_creation_initiate()
 
         FreiyaTMod.freiya_trade_factions_dropdown = core:get_or_create_component("freiya_trade_factions_dropdown","UI/templates/freiya_dropdown_context.twui.xml",FreiyaTMod.freiya_trade_panel_frame)
         FreiyaTMod.freiya_trade_factions_dropdown:SetDockingPoint(5)
-        FreiyaTMod.freiya_trade_factions_dropdown:SetDockOffset(-350,-250)
+        FreiyaTMod.freiya_trade_factions_dropdown:SetDockOffset(-350,-150)
         
         FreiyaTMod.freiya_trade_factions_popup_menu = find_child_uicomponent(FreiyaTMod.freiya_trade_factions_dropdown,"popup_menu")
         FreiyaTMod.freiya_trade_factions_listview = find_child_uicomponent(FreiyaTMod.freiya_trade_factions_popup_menu,"listview")
@@ -322,7 +322,7 @@ local function freiya_trade_menu_creation_initiate()
 
         FreiyaTMod.freiya_trade_receiver_dropdown = core:get_or_create_component("freiya_trade_receiver_dropdown","UI/templates/freiya_dropdown_context.twui.xml",FreiyaTMod.freiya_trade_panel_frame)
         FreiyaTMod.freiya_trade_receiver_dropdown:SetDockingPoint(5)
-        FreiyaTMod.freiya_trade_receiver_dropdown:SetDockOffset(350,-250)
+        FreiyaTMod.freiya_trade_receiver_dropdown:SetDockOffset(350,-150)
         
         FreiyaTMod.freiya_trade_receiver_popup_menu = find_child_uicomponent(FreiyaTMod.freiya_trade_receiver_dropdown,"popup_menu")
         FreiyaTMod.freiya_trade_receiver_listview = find_child_uicomponent(FreiyaTMod.freiya_trade_receiver_popup_menu,"listview")
@@ -434,7 +434,7 @@ local function freiya_trade_menu_creation_initiate()
         
         local freiya_trade_flag_path = ""
         FreiyaTMod.freiya_trade_faction_our_flag = core:get_or_create_component("freiya_trade_faction_our_flag","ui/templates/panel_frame.twui.xml", FreiyaTMod.freiya_trade_panel_frame)
-        freiya_trade_flag_path = common.get_context_value("CcoCampaignFaction", freiya_trade_current_player:command_queue_index(), "FactionFlagDir")
+        freiya_trade_flag_path = common.get_context_value("CcoCampaignFaction", cm:get_faction(freiya_giver_faction):command_queue_index(), "FactionFlagDir")
         FreiyaTMod.freiya_trade_faction_our_flag:SetDockingPoint(1)
         FreiyaTMod.freiya_trade_faction_our_flag:Resize(44, 44, true)
         FreiyaTMod.freiya_trade_faction_our_flag:SetDockOffset(350,150)
@@ -442,7 +442,7 @@ local function freiya_trade_menu_creation_initiate()
         FreiyaTMod.freiya_trade_faction_our_flag:SetImagePath(freiya_trade_flag_path .. "/mon_64.png", 0, true)
         
         FreiyaTMod.freiya_trade_faction_their_flag = core:get_or_create_component("freiya_trade_faction_their_flag","ui/templates/panel_frame.twui.xml", FreiyaTMod.freiya_trade_panel_frame)
-        freiya_trade_flag_path = common.get_context_value("CcoCampaignFaction", cm:get_faction(freiya_selected_faction):command_queue_index(), "FactionFlagDir")
+        freiya_trade_flag_path = common.get_context_value("CcoCampaignFaction", cm:get_faction(freiya_receiver_faction):command_queue_index(), "FactionFlagDir")
         FreiyaTMod.freiya_trade_faction_their_flag:SetDockingPoint(1)
         FreiyaTMod.freiya_trade_faction_their_flag:Resize(44, 44, true)
         FreiyaTMod.freiya_trade_faction_their_flag:SetDockOffset(1150,150)
@@ -490,8 +490,8 @@ local function freiya_trade_menu_creation_initiate()
                         freiya_selected_region = nil
                         FreiyaTMod.freiya_trade_their_dropdown_preparation()
         
-                        local freiya_trade_their_flag_path = common.get_context_value("CcoCampaignFaction", cm:get_faction(freiya_selected_faction):command_queue_index(), "FactionFlagDir")
-                        FreiyaTMod.freiya_trade_faction_their_flag:SetImagePath(freiya_trade_their_flag_path .. "/mon_64.png", 0, true)
+                        local freiya_trade_giver_flag_path = common.get_context_value("CcoCampaignFaction", cm:get_faction(freiya_giver_faction):command_queue_index(), "FactionFlagDir")
+                        FreiyaTMod.freiya_trade_faction_our_flag:SetImagePath(freiya_trade_giver_flag_path .. "/mon_64.png", 0, true)
                         
                         if FreiyaTMod.freiya_update_confirm_state then
                             FreiyaTMod.freiya_update_confirm_state()
@@ -537,6 +537,9 @@ local function freiya_trade_menu_creation_initiate()
                         local faction_key = k:sub(1, -10)
                         freiya_receiver_faction = faction_key
                         FreiyaTMod.freiya_trade_receiver_selected_context_display:SetStateText(common.get_localised_string("factions_screen_name_" .. faction_key))
+
+                        local freiya_trade_receiver_flag_path = common.get_context_value("CcoCampaignFaction", cm:get_faction(freiya_receiver_faction):command_queue_index(), "FactionFlagDir")
+                        FreiyaTMod.freiya_trade_faction_their_flag:SetImagePath(freiya_trade_receiver_flag_path .. "/mon_64.png", 0, true)
 
                         if FreiyaTMod.freiya_update_confirm_state then
                             FreiyaTMod.freiya_update_confirm_state()
@@ -721,7 +724,7 @@ local function freiya_trade_panel_button_creation()
         
     if not freiya_trade_panel_button then
         FreiyaTMod.freiya_trade_panel_button = core:get_or_create_component("freiya_trade_panel_button","UI/templates/round_small_button.twui.xml", buttongroup)
-        FreiyaTMod.freiya_trade_panel_button:SetImagePath("ui/campaign ui/diplomacy_icons/diplomatic_option_trade_regions.png", 0,false)
+        FreiyaTMod.freiya_trade_panel_button:SetImagePath("ui/campaign ui/diplomacy_icons/diplomatic_option_military_alliance.png", 0,false)
         FreiyaTMod.freiya_trade_panel_button:SetVisible(true)
         FreiyaTMod.freiya_trade_panel_button:Resize(38, 38)
         FreiyaTMod.freiya_trade_panel_button:SetTooltipText(common.get_localised_string("freiya_trade_panel_button_loc"), common.get_localised_string("freiya_trade_panel_button_loc"), true)

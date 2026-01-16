@@ -26,8 +26,8 @@ freiya_trade_deal_details_descc_loc	gold - [[col:red]]You don't have enough gold
 freiya_trade_deal_details_descd_loc	\\n\\n [[col:green]]You get :[[/col]]\\n+ 	true
 freiya_trade_deal_details_desce_loc	\\n\\n [[col:green]]You get :[[/col]]\\n	true
 freiya_trade_deal_details_descf_loc	gold\\n\\n [[col:green]]You get :[[/col]]\\n	true
-freiya_trade_their_attitude_label_loc	[[img:icon_non-aggression_pact]][[/img]] Improve Relations	true
-freiya_trade_their_selected_context_display_loc	[[img:icon_non-aggression_pact]][[/img]] Improve Relations	true
+freiya_trade_their_attitude_label_loc	[[img:icon_non-aggression_pact]][[/img]] Select a City	true
+freiya_trade_their_selected_context_display_loc	[[img:icon_non-aggression_pact]][[/img]] Select a City	true
 freiya_trade_panel_confirma_loc	Select at least one region to trade	true
 freiya_trade_panel_confirmb_loc	Click to confirm the trade	true
 freiya_trade_panel_confirmc_loc	Not enough gold to confirm !	true
