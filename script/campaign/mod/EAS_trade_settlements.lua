@@ -21,7 +21,7 @@ local function EAS_trade_menu_creation_initiate()
     
     -- Set default modifiers
     EAS_available_factions = "Met Factions (No War)"
-    EAS_ai_min_region = "1"
+    EAS_ai_min_region = "0"
     
     -- Create the core of the menu from an existing xml
     EASMod.EAS_trade_panel = core:get_or_create_component("EAS_trade_panel","ui/campaign ui/EAS_main_temples_of_the_old_ones.twui.xml", root)
@@ -58,7 +58,7 @@ local function EAS_trade_menu_creation_initiate()
     EASMod.EAS_trade_panel_title_text:SetTextHAlign("centre")
     EASMod.EAS_trade_panel_title_text:SetTextXOffset(0,0)
 	EASMod.EAS_trade_panel_title_text:SetTextYOffset(0,0)
-	EASMod.EAS_trade_panel_title_text:SetDockOffset(0,-10)
+	EASMod.EAS_trade_panel_title_text:SetDockOffset(0,0)
     EASMod.EAS_trade_panel_title_text:SetCanResizeWidth(true)
     EASMod.EAS_trade_panel_title_text:SetCanResizeHeight(true)
     EASMod.EAS_trade_panel_title_text:Resize(600,80)
@@ -89,7 +89,7 @@ local function EAS_trade_menu_creation_initiate()
 
     EASMod.EAS_trade_panel_title_text:CopyComponent("EAS_trade_deal_details_desc")
     EASMod.EAS_trade_deal_details_desc = find_child_uicomponent(EASMod.EAS_trade_panel_header,"EAS_trade_deal_details_desc")
-    EASMod.EAS_trade_deal_details_desc:SetDockOffset(0,150)
+    EASMod.EAS_trade_deal_details_desc:SetDockOffset(0,200)
     EASMod.EAS_trade_deal_details_desc:Resize(500,100)
     EASMod.EAS_trade_deal_details_desc:SetVisible(false)
     EASMod.EAS_trade_deal_details_desc:SetCurrentStateImageOpacity(0, 0)
@@ -325,40 +325,18 @@ local function EAS_trade_menu_creation_initiate()
         
         local EAS_trade_factions = {}
 
-        -- Add current player to the list
         local loc_player_name = common.get_localised_string("factions_screen_name_" .. EAS_trade_current_player:name())
         table.insert(EAS_trade_factions, { loc_player_name, EAS_trade_current_player:name() } )
 
-        if EAS_available_factions == "Met Factions (No War)" or EAS_available_factions == "Met Factions (With War)" then
-            local met_factions = EAS_trade_current_player:factions_met()
-            for i = 0, met_factions:num_items() - 1 do
-                local current_faction = met_factions:item_at(i)
-                if EAS_trade_current_player ~= current_faction and EAS_trade_current_player:is_ally_vassal_or_client_state_of(current_faction) then
-                    if EAS_available_factions == "Met Factions (No War)" and not EAS_trade_current_player:at_war_with(current_faction) and current_faction:region_list():num_items() >= tonumber(EAS_ai_min_region) then
-                        local loc_faction_name = common.get_localised_string("factions_screen_name_" .. current_faction:name())
-                        table.insert(EAS_trade_factions, { loc_faction_name, current_faction:name() } )
-                    elseif EAS_available_factions == "Met Factions (With War)" and current_faction:region_list():num_items() >= tonumber(EAS_ai_min_region) then
-                        local loc_faction_name = common.get_localised_string("factions_screen_name_" .. current_faction:name())
-                        table.insert(EAS_trade_factions, { loc_faction_name, current_faction:name() } )
-                    end
-                end
-            end
-        elseif EAS_available_factions == "All Factions (No War)" or EAS_available_factions == "All Factions (With War)" then
-            local all_factions = cm:model():world():faction_list()
-            for i = 0, all_factions:num_items() - 1 do
-                local current_faction = all_factions:item_at(i)
-                if EAS_trade_current_player ~= current_faction and EAS_trade_current_player:is_ally_vassal_or_client_state_of(current_faction) then
-                    if EAS_available_factions == "All Factions (No War)" and not EAS_trade_current_player:at_war_with(current_faction) and current_faction:region_list():num_items() >= tonumber(EAS_ai_min_region) then
-                        local loc_faction_name = common.get_localised_string("factions_screen_name_" .. current_faction:name())
-                        if loc_faction_name ~= "" then
-                            table.insert(EAS_trade_factions, { loc_faction_name, current_faction:name() } )
-                        end
-                    elseif EAS_available_factions == "All Factions (With War)" and current_faction:region_list():num_items() >= tonumber(EAS_ai_min_region) then
-                        local loc_faction_name = common.get_localised_string("factions_screen_name_" .. current_faction:name())
-                        if loc_faction_name ~= "" then
-                            table.insert(EAS_trade_factions, { loc_faction_name, current_faction:name() } )
-                        end
-                    end
+        local all_factions = cm:model():world():faction_list()
+        for i = 0, all_factions:num_items() - 1 do
+            local current_faction = all_factions:item_at(i)
+            if EAS_trade_current_player ~= current_faction
+                and EAS_trade_current_player:is_ally_vassal_or_client_state_of(current_faction)
+                and current_faction:region_list():num_items() >= tonumber(EAS_ai_min_region) then
+                local loc_faction_name = common.get_localised_string("factions_screen_name_" .. current_faction:name())
+                if loc_faction_name ~= "" then
+                    table.insert(EAS_trade_factions, { loc_faction_name, current_faction:name() } )
                 end
             end
         end
