@@ -9,6 +9,27 @@ local EAS_trade_current_player = nil
 local EAS_giver_faction = nil
 local EAS_receiver_faction = nil
 local EAS_selected_region = nil
+local EAS_allow_player_cities = false
+
+
+local function EAS_read_mct_settings()
+    EAS_allow_player_cities = false
+    if get_mct ~= nil then
+        local ok, mct_obj = pcall(get_mct)
+        if ok and mct_obj then
+            local mct_mod = mct_obj:get_mod_by_key("exchange_allied_settlements")
+            if mct_mod then
+                local option = mct_mod:get_option_by_key("allow_player_cities")
+                if option then
+                    local value = option:get_finalized_setting()
+                    if type(value) == "boolean" then
+                        EAS_allow_player_cities = value
+                    end
+                end
+            end
+        end
+    end
+end
 
 
 -- Create the trade settlements menu
@@ -17,6 +38,8 @@ local function EAS_trade_menu_creation_initiate()
 	EAS_selected_faction = nil
 	EAS_find_factions = false
 	EAS_trade_current_player = cm:get_local_faction(true)
+    
+    EAS_read_mct_settings()
 	
     
     -- Set default modifiers
@@ -325,8 +348,10 @@ local function EAS_trade_menu_creation_initiate()
         
         local EAS_trade_factions = {}
 
-        local loc_player_name = common.get_localised_string("factions_screen_name_" .. EAS_trade_current_player:name())
-        table.insert(EAS_trade_factions, { loc_player_name, EAS_trade_current_player:name() } )
+        if EAS_allow_player_cities then
+            local loc_player_name = common.get_localised_string("factions_screen_name_" .. EAS_trade_current_player:name())
+            table.insert(EAS_trade_factions, { loc_player_name, EAS_trade_current_player:name() } )
+        end
 
         local all_factions = cm:model():world():faction_list()
         for i = 0, all_factions:num_items() - 1 do
