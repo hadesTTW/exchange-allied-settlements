@@ -3,7 +3,6 @@ local root = EASMod.root
 
 local EAS_selected_faction = nil
 local EAS_find_factions = false
-local EAS_available_factions = nil 
 local EAS_ai_min_region = nil
 local EAS_trade_current_player = nil
 local EAS_giver_faction = nil
@@ -43,11 +42,10 @@ local function EAS_trade_menu_creation_initiate()
 	
     
     -- Set default modifiers
-    EAS_available_factions = "Met Factions (No War)"
     EAS_ai_min_region = "0"
     
     -- Create the core of the menu from an existing xml
-    EASMod.EAS_trade_panel = core:get_or_create_component("EAS_trade_panel","ui/campaign ui/EAS_main_temples_of_the_old_ones.twui.xml", root)
+    EASMod.EAS_trade_panel = core:get_or_create_component("EAS_trade_panel","ui/campaign ui/EAS_main_trade_screen.twui.xml", root)
     
     EASMod.EAS_trade_panel_frame = find_child_uicomponent(EASMod.EAS_trade_panel,"panel_frame")
     --local EAS_trade_panel_frame_width = EASMod.EAS_trade_panel_frame:Width()
@@ -194,7 +192,7 @@ local function EAS_trade_menu_creation_initiate()
             EASMod.no_mpfaction_var = find_child_uicomponent(EASMod.EAS_trade_mpfactions_list_box, "no_mpfaction_var")
             EASMod.no_mpfaction_label = find_child_uicomponent(EASMod.no_mpfaction_var, "label_context_name")
             
-            EASMod.no_mpfaction_label:SetStateText(common.get_localised_string("no_faction_label_loc"))
+            EASMod.no_mpfaction_label:SetStateText(common.get_localised_string("EAS_trade_factions_selected_context_display_loc"))
             EASMod.EAS_trade_mpfactions_selected_context_display:SetStateText(common.get_localised_string("EAS_trade_factions_selected_context_display_loc"))
             
             EASMod.no_mpfaction_var:SetVisible(true)
@@ -375,8 +373,9 @@ local function EAS_trade_menu_creation_initiate()
             EASMod.no_faction_var = find_child_uicomponent(EASMod.EAS_trade_factions_list_box, "no_faction_var")
             EASMod.no_faction_label = find_child_uicomponent(EASMod.no_faction_var, "label_context_name")
             
-            EASMod.no_faction_label:SetStateText(common.get_localised_string("no_faction_label_loc"))
+            EASMod.no_faction_label:SetStateText(common.get_localised_string("EAS_trade_factions_selected_context_display_loc"))
             EASMod.EAS_trade_factions_selected_context_display:SetStateText(common.get_localised_string("EAS_trade_factions_selected_context_display_loc"))
+            EASMod.EAS_trade_receiver_selected_context_display:SetStateText(common.get_localised_string("EAS_trade_receiver_selected_context_display_loc"))
             
             EASMod.no_faction_var:SetVisible(true)
             EASMod.EAS_trade_panel_desc:SetVisible(false)

@@ -5,7 +5,8 @@ EAS_trade_deal_loc	Transfer Summary	true
 EAS_trade_mpfactions_desc_label_loc	Choose your faction :	true
 EAS_trade_factions_desc_label_loc	Choose the faction you want to trade with :	true
 no_faction_label_loc	No faction to trade with	true
-EAS_trade_factions_selected_context_display_loc	No faction to trade with	true
+EAS_trade_factions_selected_context_display_loc	No factions to give	true
+EAS_trade_receiver_selected_context_display_loc	No factions to receive	true
 EAS_trade_their_attitude_label_loc	[[img:icon_non-aggression_pact]][[/img]] Select a City	true
 EAS_trade_their_selected_context_display_loc	[[img:icon_non-aggression_pact]][[/img]] Select a City	true
 EAS_trade_panel_confirma_loc	Select at least one region to trade	true
