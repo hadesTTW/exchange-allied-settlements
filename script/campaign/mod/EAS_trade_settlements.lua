@@ -82,7 +82,7 @@ local function EAS_trade_menu_creation_initiate()
 	EASMod.EAS_trade_panel_title_text:SetDockOffset(0,0)
     EASMod.EAS_trade_panel_title_text:SetCanResizeWidth(true)
     EASMod.EAS_trade_panel_title_text:SetCanResizeHeight(true)
-    EASMod.EAS_trade_panel_title_text:Resize(600,80)
+    EASMod.EAS_trade_panel_title_text:Resize(650,65)
 	EASMod.EAS_trade_panel_title_text:SetStateText(common.get_localised_string("EAS_trade_panel_title_text_loc"))
 
     EASMod.EAS_trade_panel_title_text:CopyComponent("EAS_trade_panel_desc")
