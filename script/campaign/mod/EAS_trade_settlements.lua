@@ -713,14 +713,14 @@ local function EAS_trade_menu_creation_initiate()
              local tooltip_text = string.format(common.get_localised_string("EAS_trade_panel_confederate_tooltip_loc"), giver_name, receiver_name, giver_name)
              EASMod.EAS_trade_panel_confederate:SetTooltipText(tooltip_text, tooltip_text, true)
 
-             if giver_culture == receiver_culture then
+             local is_player_involved = (EAS_giver_faction == EAS_trade_current_player:name()) or (EAS_receiver_faction == EAS_trade_current_player:name())
+
+             if giver_culture == receiver_culture and not is_player_involved then
                 EASMod.EAS_trade_panel_confederate:SetVisible(true)
                 EASMod.EAS_trade_panel_confederate:SetDisabled(false)
-                EASMod.EAS_trade_confederate_summary:SetVisible(true)
              else
                 EASMod.EAS_trade_panel_confederate:SetVisible(false)
                 EASMod.EAS_trade_panel_confederate:SetDisabled(true)
-                EASMod.EAS_trade_confederate_summary:SetVisible(false)
              end
         else
              EASMod.EAS_trade_panel_confederate:SetVisible(false)
