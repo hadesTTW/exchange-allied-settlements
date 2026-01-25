@@ -529,7 +529,19 @@ local function EAS_trade_menu_creation_initiate()
                     if context:trigger() == k then
                         local faction_key = k:sub(1, -10)
                         if faction_key == EAS_giver_faction then
-                            return
+                             local old_receiver = EAS_receiver_faction
+                             EAS_giver_faction = old_receiver
+                             EAS_selected_faction = old_receiver
+                             
+                             EASMod.EAS_trade_factions_selected_context_display:SetStateText(common.get_localised_string("factions_screen_name_" .. EAS_giver_faction))
+                             local EAS_trade_giver_flag_path = common.get_context_value("CcoCampaignFaction", cm:get_faction(EAS_giver_faction):command_queue_index(), "FactionFlagDir")
+                             EASMod.EAS_trade_faction_our_flag:SetImagePath(EAS_trade_giver_flag_path .. "/mon_64.png", 0, true)
+                             
+                             if EASMod.EAS_trade_their_dropdown and EASMod.EAS_trade_their_dropdown:IsValid() then
+                                EASMod.EAS_trade_their_dropdown:Destroy()
+                             end
+                             EAS_selected_region = nil
+                             EASMod.EAS_trade_their_dropdown_preparation()
                         end
                         EAS_receiver_faction = faction_key
                         EASMod.EAS_trade_receiver_selected_context_display:SetStateText(common.get_localised_string("factions_screen_name_" .. faction_key))
