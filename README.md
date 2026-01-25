@@ -1,5 +1,5 @@
 # Exchange Allied Settlements (And Make Allies Confederate)
-This is a Total War: Warhammer 3 mod that adds in a user interface that allows the user to transfer settlements from one ally to another, or confederate two allies of the same race together. This is useful for strengthening your preferred allies, consolidating your vassals into one favored faction, or just for creating aesthetically pleasing borders between your neighbors.
+This is a Total War: Warhammer 3 mod that adds in a user interface that allows the user to transfer settlements from one ally to another, or force two allies of the same race to confederate together. This is useful for strengthening your preferred allies, consolidating your vassals into one favored faction, or just for creating aesthetically pleasing borders between your neighbors.
 
 You do this by pressing a button on the top left of the UI that leads to a menu that displays a dropdown list of your allies. You can then select any city to transfer to another ally. You can only move one city at a time with this system, and you can gift the last remaining settlement of an ally to another ally.
 

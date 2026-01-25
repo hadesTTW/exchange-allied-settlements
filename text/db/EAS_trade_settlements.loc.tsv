@@ -16,7 +16,7 @@ EAS_trade_panel_button_loc	Exchange Allied Settlements	true
 EAS_trade_panel_giving_ally_loc	Giving Ally	true
 EAS_trade_panel_receiving_ally_loc	Receiving Ally	true
 mct_EAS_title	Exchange Allied Settlements	true
-mct_EAS_description	A mod that adds in a user interface that allows the user to transfer settlements from one ally to another.	true
+mct_EAS_description	A mod that adds in a user interface that allows the user to transfer settlements from one ally to another, or force two allies of the same race to confederate together.	true
 mct_EAS_allow_player_cities_text	Allow trading to and from the player	true
 mct_EAS_allow_player_cities_tooltip	If enabled, you and your allies can send cities to and from your faction. If disabled, cities can only be traded between your allied factions, not involving your own.	true
 EAS_trade_panel_confederate_loc	Confederate	true
