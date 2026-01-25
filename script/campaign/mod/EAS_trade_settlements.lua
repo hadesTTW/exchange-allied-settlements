@@ -691,6 +691,29 @@ local function EAS_trade_menu_creation_initiate()
              EASMod.EAS_trade_panel_confirm:SetDisabled(true)
              EASMod.EAS_trade_panel_confirm:SetImagePath("ui/campaign ui/message_icons/event_diplomacy_negative.png", 0, false)
         end
+
+        if EAS_giver_faction and EAS_receiver_faction and EAS_giver_faction ~= EAS_receiver_faction then
+             local giver_culture = cm:get_faction(EAS_giver_faction):culture()
+             local receiver_culture = cm:get_faction(EAS_receiver_faction):culture()
+             
+             local giver_name = common.get_localised_string("factions_screen_name_" .. EAS_giver_faction)
+             local receiver_name = common.get_localised_string("factions_screen_name_" .. EAS_receiver_faction)
+             local tooltip_text = string.format(common.get_localised_string("EAS_trade_panel_confederate_tooltip_loc"), giver_name, receiver_name, giver_name)
+             EASMod.EAS_trade_panel_confederate:SetTooltipText(tooltip_text, tooltip_text, true)
+
+             if giver_culture == receiver_culture then
+                EASMod.EAS_trade_panel_confederate:SetVisible(true)
+                EASMod.EAS_trade_panel_confederate:SetDisabled(false)
+                EASMod.EAS_trade_confederate_summary:SetVisible(true)
+             else
+                EASMod.EAS_trade_panel_confederate:SetVisible(false)
+                EASMod.EAS_trade_panel_confederate:SetDisabled(true)
+                EASMod.EAS_trade_confederate_summary:SetVisible(false)
+             end
+        else
+             EASMod.EAS_trade_panel_confederate:SetVisible(false)
+             EASMod.EAS_trade_panel_confederate:SetDisabled(true)
+        end
     end
     
     -- Create the confirm button
@@ -700,6 +723,15 @@ local function EAS_trade_menu_creation_initiate()
 	EASMod.EAS_trade_panel_confirm:SetDockOffset(-150,-10)
 	EASMod.EAS_trade_panel_confirm:SetTooltipText(common.get_localised_string("EAS_trade_panel_confirma_loc"), common.get_localised_string("EAS_trade_panel_confirma_loc"), true)
 	EASMod.EAS_trade_panel_confirm:SetDisabled(true)
+
+    -- Create the confederate button
+    EASMod.EAS_trade_panel_confederate = core:get_or_create_component("EAS_trade_panel_confederate","UI/templates/round_medium_button.twui.xml", EASMod.EAS_trade_panel_frame)
+    EASMod.EAS_trade_panel_confederate:SetImagePath("ui/campaign ui/diplomacy_icons/diplomatic_option_confederation.png", 0,false)
+    EASMod.EAS_trade_panel_confederate:SetDockingPoint(8)
+    EASMod.EAS_trade_panel_confederate:SetDockOffset(0,-10)
+    EASMod.EAS_trade_panel_confederate:SetTooltipText(common.get_localised_string("EAS_trade_panel_confederate_tooltip_loc"), common.get_localised_string("EAS_trade_panel_confederate_tooltip_loc"), true)
+    EASMod.EAS_trade_panel_confederate:SetDisabled(true)
+    EASMod.EAS_trade_panel_confederate:SetVisible(false)
 
     -- Create the cancel button
 	EASMod.EAS_trade_panel_cancel = core:get_or_create_component("EAS_trade_panel_cancel","UI/templates/round_medium_button.twui.xml", EASMod.EAS_trade_panel_frame)
@@ -764,7 +796,8 @@ function EAS_trade_create_listeners()
         "ComponentLClickUp",
         function(context)
 			return context.string == EASMod.EAS_trade_panel_confirm:Id() or
-            context.string == EASMod.EAS_trade_panel_cancel:Id()
+            context.string == EASMod.EAS_trade_panel_cancel:Id() or
+            context.string == EASMod.EAS_trade_panel_confederate:Id()
 		end,
 		function(context)
             CampaignUI.TriggerCampaignScriptEvent(0, context.string)     
@@ -777,12 +810,28 @@ function EAS_trade_create_listeners()
         "UITrigger",
 		function(context)
             return context:trigger() == EASMod.EAS_trade_panel_confirm:Id() or
-            context:trigger() == EASMod.EAS_trade_panel_cancel:Id()
+            context:trigger() == EASMod.EAS_trade_panel_cancel:Id() or
+            context:trigger() == EASMod.EAS_trade_panel_confederate:Id()
 		end,
 		function(context)
             if context:trigger() == EASMod.EAS_trade_panel_confirm:Id() then
                 if EAS_selected_region and EAS_receiver_faction and EAS_giver_faction ~= EAS_receiver_faction then
                     cm:transfer_region_to_faction(EAS_selected_region, EAS_receiver_faction)
+                end
+        
+                -- Destroy the trade menu
+        
+                EASMod.EAS_trade_panel:SetVisible(false)
+                EASMod.EAS_trade_panel:Destroy()
+                core:remove_listener("EAS_trade_mpfaction_pressed_listener")
+                core:remove_listener("EAS_trade_faction_pressed_listener")
+                core:remove_listener("EAS_trade_our_regions_pressed_listener")
+                core:remove_listener("EAS_trade_their_regions_pressed_listener")
+                core:remove_listener("EAS_trade_buttons_pressed_listener")
+
+            elseif context:trigger() == EASMod.EAS_trade_panel_confederate:Id() then
+                if EAS_giver_faction and EAS_receiver_faction and EAS_giver_faction ~= EAS_receiver_faction then
+                    cm:force_confederation(EAS_receiver_faction, EAS_giver_faction)
                 end
         
                 -- Destroy the trade menu

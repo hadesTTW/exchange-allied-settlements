@@ -5,6 +5,9 @@ local mct_mod = mct:register_mod("exchange_allied_settlements")
 if is_function(mct_mod.set_main_image) then
     mct_mod:set_main_image("ui/exchange-allied-settlements.png", 300, 300);
 end;
+if is_function(mct_mod.set_workshop_id) then
+    mct_mod:set_workshop_id("3651393085");
+end;
 
 mct_mod:set_title(common.get_localised_string("mct_EAS_title"))
 mct_mod:set_author("HadesTTW")
