@@ -3,7 +3,6 @@ local root = EASMod.root
 
 local EAS_selected_faction = nil
 local EAS_find_factions = false
-local EAS_ai_min_region = nil
 local EAS_trade_current_player = nil
 local EAS_giver_faction = nil
 local EAS_receiver_faction = nil
@@ -28,6 +27,10 @@ local function EAS_read_mct_settings()
             end
         end
     end
+    
+    if cm:is_multiplayer() then
+        EAS_allow_player_cities = false
+    end
 end
 
 
@@ -42,7 +45,6 @@ local function EAS_trade_menu_creation_initiate()
 	
     
     -- Set default modifiers
-    EAS_ai_min_region = "0"
     
     -- Create the core of the menu from an existing xml
     EASMod.EAS_trade_panel = core:get_or_create_component("EAS_trade_panel","ui/campaign ui/EAS_main_trade_screen.twui.xml", root)
@@ -354,9 +356,13 @@ local function EAS_trade_menu_creation_initiate()
         local all_factions = cm:model():world():faction_list()
         for i = 0, all_factions:num_items() - 1 do
             local current_faction = all_factions:item_at(i)
+            
+            -- Filter out human factions in multiplayer
+            local is_human_in_mp = cm:is_multiplayer() and current_faction:is_human()
+            
             if EAS_trade_current_player ~= current_faction
-                and EAS_trade_current_player:is_ally_vassal_or_client_state_of(current_faction)
-                and current_faction:region_list():num_items() >= tonumber(EAS_ai_min_region) then
+                and not is_human_in_mp
+                and EAS_trade_current_player:is_ally_vassal_or_client_state_of(current_faction) then
                 local loc_faction_name = common.get_localised_string("factions_screen_name_" .. current_faction:name())
                 if loc_faction_name ~= "" then
                     table.insert(EAS_trade_factions, { loc_faction_name, current_faction:name() } )
