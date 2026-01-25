@@ -459,9 +459,21 @@ local function EAS_trade_menu_creation_initiate()
             function(context)
                 for k, v in pairs(EAS_factions_var) do
                     if context:trigger() == k then
-                        EAS_selected_faction = k
-                        EAS_giver_faction = k
-                        EASMod.EAS_trade_factions_selected_context_display:SetStateText(common.get_localised_string("factions_screen_name_" .. k))
+                        if k == EAS_receiver_faction then
+                            local old_giver = EAS_giver_faction
+                            EAS_receiver_faction = old_giver
+                            EAS_giver_faction = k
+                            EAS_selected_faction = k
+                            
+                            EASMod.EAS_trade_receiver_selected_context_display:SetStateText(common.get_localised_string("factions_screen_name_" .. EAS_receiver_faction))
+                            local EAS_trade_receiver_flag_path = common.get_context_value("CcoCampaignFaction", cm:get_faction(EAS_receiver_faction):command_queue_index(), "FactionFlagDir")
+                            EASMod.EAS_trade_faction_their_flag:SetImagePath(EAS_trade_receiver_flag_path .. "/mon_64.png", 0, true)
+                        else
+                            EAS_selected_faction = k
+                            EAS_giver_faction = k
+                        end
+                        
+                        EASMod.EAS_trade_factions_selected_context_display:SetStateText(common.get_localised_string("factions_screen_name_" .. EAS_giver_faction))
                         
                         if EASMod.EAS_trade_their_dropdown and EASMod.EAS_trade_their_dropdown:IsValid() then
                             EASMod.EAS_trade_their_dropdown:Destroy()
@@ -829,17 +841,16 @@ function EAS_trade_create_listeners()
             if context:trigger() == EASMod.EAS_trade_panel_confirm:Id() then
                 if EAS_selected_region and EAS_receiver_faction and EAS_giver_faction ~= EAS_receiver_faction then
                     cm:transfer_region_to_faction(EAS_selected_region, EAS_receiver_faction)
+                    
+                    if EASMod.EAS_trade_their_dropdown and EASMod.EAS_trade_their_dropdown:IsValid() then
+                        EASMod.EAS_trade_their_dropdown:Destroy()
+                    end
+                    EAS_selected_region = nil
+                    EASMod.EAS_trade_their_dropdown_preparation()
+                    
+                    EASMod.EAS_trade_their_selected_context_display:SetStateText(common.get_localised_string("EAS_trade_their_selected_context_display_loc"))
+                    EASMod.EAS_update_confirm_state()
                 end
-        
-                -- Destroy the trade menu
-        
-                EASMod.EAS_trade_panel:SetVisible(false)
-                EASMod.EAS_trade_panel:Destroy()
-                core:remove_listener("EAS_trade_mpfaction_pressed_listener")
-                core:remove_listener("EAS_trade_faction_pressed_listener")
-                core:remove_listener("EAS_trade_our_regions_pressed_listener")
-                core:remove_listener("EAS_trade_their_regions_pressed_listener")
-                core:remove_listener("EAS_trade_buttons_pressed_listener")
 
             elseif context:trigger() == EASMod.EAS_trade_panel_confederate:Id() then
                 if EAS_giver_faction and EAS_receiver_faction and EAS_giver_faction ~= EAS_receiver_faction then
