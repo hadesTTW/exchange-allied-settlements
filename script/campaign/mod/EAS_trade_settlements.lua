@@ -446,7 +446,9 @@ local function EAS_trade_menu_creation_initiate()
                     if context:trigger() == k then
                         if k == EAS_receiver_faction then
                             local old_giver = EAS_giver_faction
-                            EAS_receiver_faction = old_giver
+                            if old_giver ~= EAS_trade_current_player:name() then
+                                EAS_receiver_faction = old_giver
+                            end
                             EAS_giver_faction = k
                             EAS_selected_faction = k
                             
