@@ -829,6 +829,11 @@ function EAS_trade_create_listeners()
                 if EAS_selected_region and EAS_receiver_faction and EAS_giver_faction ~= EAS_receiver_faction then
                     cm:transfer_region_to_faction(EAS_selected_region, EAS_receiver_faction)
                     
+                    -- Add diplomatic bonus equivalent to large gold gift
+                    if EAS_giver_faction == EAS_trade_current_player:name() then
+                        cm:cai_add_diplomatic_event(EAS_giver_faction, EAS_receiver_faction, "STATE_GIFT_LARGE")
+                    end
+                    
                     if EASMod.EAS_trade_their_dropdown and EASMod.EAS_trade_their_dropdown:IsValid() then
                         EASMod.EAS_trade_their_dropdown:Destroy()
                     end
