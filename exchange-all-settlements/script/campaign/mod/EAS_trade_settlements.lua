@@ -17,6 +17,7 @@ local function EAS_trade_menu_creation_initiate()
 	EAS_trade_current_player = cm:get_local_faction(true)
     
     -- Set default modifiers
+    EAS_ai_min_region = "1"
     
     -- Create the core of the menu from an existing xml
     EASMod.EAS_trade_panel = core:get_or_create_component("EAS_trade_panel","ui/campaign ui/EAS_main_trade_screen.twui.xml", root)
@@ -331,7 +332,8 @@ local function EAS_trade_menu_creation_initiate()
             
             if EAS_trade_current_player ~= current_faction and not is_other_human_mp then
                 local loc_faction_name = common.get_localised_string("factions_screen_name_" .. current_faction:name())
-                if loc_faction_name ~= "" then
+                if loc_faction_name ~= ""
+                and current_faction:region_list():num_items() >= tonumber(EAS_ai_min_region) then
                     table.insert(EAS_trade_factions, { loc_faction_name, current_faction:name() } )
                 end
             end
@@ -747,7 +749,7 @@ local function EAS_trade_panel_button_creation()
         
     if not EAS_trade_panel_button then
         EASMod.EAS_trade_panel_button = core:get_or_create_component("EAS_trade_panel_button","UI/templates/round_small_button.twui.xml", buttongroup)
-        EASMod.EAS_trade_panel_button:SetImagePath("ui/campaign ui/diplomacy_icons/diplomatic_option_military_alliance.png", 0,false)
+        EASMod.EAS_trade_panel_button:SetImagePath("ui/campaign ui/diplomacy_icons/diplomatic_option_defensive_alliance.png", 0,false)
         EASMod.EAS_trade_panel_button:SetVisible(true)
         EASMod.EAS_trade_panel_button:Resize(38, 38)
         EASMod.EAS_trade_panel_button:SetTooltipText(common.get_localised_string("EAS_trade_panel_button_loc"), common.get_localised_string("EAS_trade_panel_button_loc"), true)
