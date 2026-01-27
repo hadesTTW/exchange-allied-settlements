@@ -846,7 +846,35 @@ function EAS_trade_create_listeners()
 
             elseif context:trigger() == EASMod.EAS_trade_panel_confederate:Id() then
                 if EAS_giver_faction and EAS_receiver_faction and EAS_giver_faction ~= EAS_receiver_faction then
+                    -- Check alliances before confederation
+                    local player_key = EAS_trade_current_player:name()
+                    local player_faction = cm:get_faction(player_key)
+                    
+                    local giver_is_mil_ally = false
+                    local mil_allies = player_faction:factions_military_allies_with()
+                    
+                    for i = 0, mil_allies:num_items() - 1 do
+                        if mil_allies:item_at(i):name() == EAS_giver_faction then
+                            giver_is_mil_ally = true
+                            break
+                        end
+                    end
+                    
+                    local receiver_is_def_ally = false
+                    local def_allies = player_faction:factions_defensive_allies_with()
+                    
+                    for i = 0, def_allies:num_items() - 1 do
+                        if def_allies:item_at(i):name() == EAS_receiver_faction then
+                            receiver_is_def_ally = true
+                            break
+                        end
+                    end
+
                     cm:force_confederation(EAS_receiver_faction, EAS_giver_faction)
+
+                    if giver_is_mil_ally and receiver_is_def_ally then
+                         cm:force_alliance(player_key, EAS_receiver_faction, true)
+                    end
                 end
         
                 -- Destroy the trade menu
