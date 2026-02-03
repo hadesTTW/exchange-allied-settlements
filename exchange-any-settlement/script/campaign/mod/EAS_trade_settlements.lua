@@ -749,7 +749,7 @@ local function EAS_trade_panel_button_creation()
         
     if not EAS_trade_panel_button then
         EASMod.EAS_trade_panel_button = core:get_or_create_component("EAS_trade_panel_button","UI/templates/round_small_button.twui.xml", buttongroup)
-        EASMod.EAS_trade_panel_button:SetImagePath("ui/campaign ui/diplomacy_icons/diplomatic_option_defensive_alliance.png", 0,false)
+        EASMod.EAS_trade_panel_button:SetImagePath("ui/campaign ui/captive_option_icons/icon_tmb_endless_march.png", 0,false)
         EASMod.EAS_trade_panel_button:SetVisible(true)
         EASMod.EAS_trade_panel_button:Resize(38, 38)
         EASMod.EAS_trade_panel_button:SetTooltipText(common.get_localised_string("EAS_trade_panel_button_loc"), common.get_localised_string("EAS_trade_panel_button_loc"), true)

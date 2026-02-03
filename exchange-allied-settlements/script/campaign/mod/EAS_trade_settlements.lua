@@ -8,6 +8,29 @@ local EAS_giver_faction = nil
 local EAS_receiver_faction = nil
 local EAS_selected_region = nil
 
+-- Whitelist for "player factions"
+-- These factions are treated as players:
+-- 1. Cannot receive cities (prevent giving cities to them)
+-- 2. Get diplo bonus when giving away cities
+-- 3. Cannot be confederated
+local EAS_player_factions_whitelist = {
+    ["wh2_dlc13_lzd_defenders_of_the_great_plan"] = true
+}
+
+local function is_whitelisted_faction(faction_name)
+    -- Always whitelist the currently selected "player" (context of the UI)
+    if EAS_trade_current_player and faction_name == EAS_trade_current_player:name() then 
+        return true 
+    end
+    
+    -- Also whitelist specific static factions
+    if EAS_player_factions_whitelist[faction_name] then 
+        return true 
+    end
+    
+    return false
+end
+
 
 -- Create the trade settlements menu
 local function EAS_trade_menu_creation_initiate()
@@ -370,7 +393,7 @@ local function EAS_trade_menu_creation_initiate()
             find_child_uicomponent(EAS_factions_var[faction_key],"label_context_name"):SetStateText(display_name)
             EAS_factions_var[faction_key]:SetVisible(true)
 
-            if faction_key ~= EAS_trade_current_player:name() then
+            if not is_whitelisted_faction(faction_key) then
                 EASMod.EAS_trade_receiver_template_dropdown_entry:CopyComponent(faction_key .. "_receiver")
                 EAS_receiver_var[faction_key .. "_receiver"] = find_child_uicomponent(EASMod.EAS_trade_receiver_list_box, faction_key .. "_receiver")
                 find_child_uicomponent(EAS_receiver_var[faction_key .. "_receiver"],"label_context_name"):SetStateText(display_name)
@@ -384,7 +407,7 @@ local function EAS_trade_menu_creation_initiate()
 
         local found_receiver = false
         for i = 1, #EAS_trade_factions do
-            if EAS_trade_factions[i][2] ~= EAS_trade_current_player:name() then
+            if not is_whitelisted_faction(EAS_trade_factions[i][2]) then
                 EAS_receiver_faction = EAS_trade_factions[i][2]
                 EASMod.EAS_trade_receiver_selected_context_display:SetStateText(EAS_trade_factions[i][1])
                 found_receiver = true
@@ -446,7 +469,7 @@ local function EAS_trade_menu_creation_initiate()
                     if context:trigger() == k then
                         if k == EAS_receiver_faction then
                             local old_giver = EAS_giver_faction
-                            if old_giver ~= EAS_trade_current_player:name() then
+                            if not is_whitelisted_faction(old_giver) then
                                 EAS_receiver_faction = old_giver
                             end
                             EAS_giver_faction = k
@@ -712,7 +735,7 @@ local function EAS_trade_menu_creation_initiate()
              local tooltip_text = string.format(common.get_localised_string("EAS_trade_panel_confederate_tooltip_loc"), giver_name, receiver_name, giver_name)
              EASMod.EAS_trade_panel_confederate:SetTooltipText(tooltip_text, tooltip_text, true)
 
-             local is_player_involved = (EAS_giver_faction == EAS_trade_current_player:name()) or (EAS_receiver_faction == EAS_trade_current_player:name())
+             local is_player_involved = is_whitelisted_faction(EAS_giver_faction) or is_whitelisted_faction(EAS_receiver_faction)
 
              if giver_culture == receiver_culture and not is_player_involved then
                 EASMod.EAS_trade_panel_confederate:SetVisible(true)
@@ -830,8 +853,8 @@ function EAS_trade_create_listeners()
                     cm:transfer_region_to_faction(EAS_selected_region, EAS_receiver_faction)
                     
                     -- Add diplomatic bonus equivalent to large gold gift
-                    if EAS_giver_faction == EAS_trade_current_player:name() then
-                        cm:cai_add_diplomatic_event(EAS_giver_faction, EAS_receiver_faction, "STATE_GIFT_LARGE")
+                    if is_whitelisted_faction(EAS_giver_faction) then
+                        cm:cai_add_diplomatic_event(EAS_trade_current_player:name(), EAS_receiver_faction, "STATE_GIFT_LARGE")
                     end
                     
                     if EASMod.EAS_trade_their_dropdown and EASMod.EAS_trade_their_dropdown:IsValid() then
