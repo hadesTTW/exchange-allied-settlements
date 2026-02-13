@@ -8,6 +8,26 @@ local EAS_giver_faction = nil
 local EAS_receiver_faction = nil
 local EAS_selected_region = nil
 
+-- Whitelist for "player factions"
+-- These factions cannot be confederated into others
+local EAS_player_factions_whitelist = {
+    ["wh2_dlc13_lzd_defenders_of_the_great_plan"] = true
+}
+
+local function is_whitelisted_faction(faction_name)
+    -- Always whitelist the currently selected "player" (context of the UI)
+    if EAS_trade_current_player and faction_name == EAS_trade_current_player:name() then 
+        return true 
+    end
+    
+    -- Also whitelist specific static factions
+    if EAS_player_factions_whitelist[faction_name] then 
+        return true 
+    end
+    
+    return false
+end
+
 
 -- Create the trade settlements menu
 local function EAS_trade_menu_creation_initiate()
@@ -700,9 +720,9 @@ local function EAS_trade_menu_creation_initiate()
              local tooltip_text = string.format(common.get_localised_string("EAS_trade_panel_confederate_tooltip_loc"), giver_name, receiver_name, giver_name)
              EASMod.EAS_trade_panel_confederate:SetTooltipText(tooltip_text, tooltip_text, true)
 
-             local giver_is_player = (EAS_giver_faction == EAS_trade_current_player:name())
+             local giver_is_whitelisted = is_whitelisted_faction(EAS_giver_faction)
 
-             if giver_culture == receiver_culture and not giver_is_player then
+             if giver_culture == receiver_culture and not giver_is_whitelisted then
                 EASMod.EAS_trade_panel_confederate:SetVisible(true)
                 EASMod.EAS_trade_panel_confederate:SetDisabled(false)
              else
@@ -749,7 +769,7 @@ local function EAS_trade_panel_button_creation()
         
     if not EAS_trade_panel_button then
         EASMod.EAS_trade_panel_button = core:get_or_create_component("EAS_trade_panel_button","UI/templates/round_small_button.twui.xml", buttongroup)
-        EASMod.EAS_trade_panel_button:SetImagePath("ui/campaign ui/captive_option_icons/icon_tmb_endless_march.png", 0,false)
+        EASMod.EAS_trade_panel_button:SetImagePath("ui/campaign ui/diplomacy_icons/diplomatic_option_trade_regions.png", 0,false)
         EASMod.EAS_trade_panel_button:SetVisible(true)
         EASMod.EAS_trade_panel_button:Resize(38, 38)
         EASMod.EAS_trade_panel_button:SetTooltipText(common.get_localised_string("EAS_trade_panel_button_loc"), common.get_localised_string("EAS_trade_panel_button_loc"), true)
