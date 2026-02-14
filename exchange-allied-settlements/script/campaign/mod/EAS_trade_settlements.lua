@@ -314,7 +314,7 @@ local function EAS_trade_menu_creation_initiate()
         EASMod.EAS_trade_factions_desc_label:SetTextHAlign("centre")
         EASMod.EAS_trade_factions_desc_label:SetDockingPoint(2)
         EASMod.EAS_trade_factions_desc_label:SetDockOffset(-350,-300)
-        EASMod.EAS_trade_factions_desc_label:SetStateText("Giver Faction")
+        EASMod.EAS_trade_factions_desc_label:SetStateText(common.get_localised_string("EAS_trade_panel_giving_ally_loc"))
 
         EASMod.EAS_trade_receiver_dropdown = core:get_or_create_component("EAS_trade_receiver_dropdown","UI/templates/EAS_dropdown_context.twui.xml",EASMod.EAS_trade_panel_frame)
         EASMod.EAS_trade_receiver_dropdown:SetDockingPoint(5)
@@ -339,7 +339,7 @@ local function EAS_trade_menu_creation_initiate()
         EASMod.EAS_trade_receiver_desc_label:SetTextHAlign("centre")
         EASMod.EAS_trade_receiver_desc_label:SetDockingPoint(2)
         EASMod.EAS_trade_receiver_desc_label:SetDockOffset(350,-300)
-        EASMod.EAS_trade_receiver_desc_label:SetStateText("Receiver Faction")
+        EASMod.EAS_trade_receiver_desc_label:SetStateText(common.get_localised_string("EAS_trade_panel_receiving_ally_loc"))
         
         local EAS_trade_factions = {}
 
@@ -714,11 +714,16 @@ local function EAS_trade_menu_creation_initiate()
             local giver_name = common.get_localised_string("factions_screen_name_" .. EAS_giver_faction)
             local receiver_name = common.get_localised_string("factions_screen_name_" .. EAS_receiver_faction)
             
-            EASMod.EAS_trade_deal_details_desc:SetStateText("Transfer " .. region_name .. " from " .. giver_name .. " to " .. receiver_name)
+            EASMod.EAS_trade_deal_details_desc:SetStateText(string.format(common.get_localised_string("EAS_trade_transfer_details_loc"), region_name, giver_name, receiver_name))
             
             EASMod.EAS_trade_panel_confirm:SetDisabled(false)
             EASMod.EAS_trade_panel_confirm:SetImagePath("ui/campaign ui/message_icons/event_diplomacy_positive.png", 0, false)
-            EASMod.EAS_trade_panel_confirm:SetTooltipText(common.get_localised_string("EAS_trade_panel_confirmb_loc"), common.get_localised_string("EAS_trade_panel_confirmb_loc"), true)
+            
+            local confirm_tooltip = common.get_localised_string("EAS_trade_panel_confirmb_loc")
+            if is_whitelisted_faction(EAS_giver_faction) then
+                confirm_tooltip = confirm_tooltip .. "\n" .. string.format(common.get_localised_string("EAS_trade_panel_confirmgift_loc"), receiver_name)
+            end
+            EASMod.EAS_trade_panel_confirm:SetTooltipText(confirm_tooltip, confirm_tooltip, true)
         else
              EASMod.EAS_trade_deal:SetVisible(false)
              EASMod.EAS_trade_deal_details_desc:SetVisible(false)

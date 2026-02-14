@@ -13,7 +13,9 @@ EAS_trade_panel_confirma_loc	Select at least one region to trade	true
 EAS_trade_panel_confirmb_loc	Click to confirm the trade	true
 EAS_trade_panel_cancel_loc	Close panel	true
 EAS_trade_panel_button_loc	Exchange Allied Settlements	true
-EAS_trade_panel_giving_ally_loc	Giving Ally	true
-EAS_trade_panel_receiving_ally_loc	Receiving Ally	true
+EAS_trade_panel_giving_ally_loc	Giver Faction	true
+EAS_trade_panel_receiving_ally_loc	Receiver Faction	true
 EAS_trade_panel_confederate_loc	Confederate	true
 EAS_trade_panel_confederate_tooltip_loc	Confederate the giving faction into the receiving faction.\\n[[col:red]]WARNING: This will cause all cities and armies of %s to be annexed by %s. Presing this button will cause %s to cease to exist![[/col]]	true
+EAS_trade_panel_confirmgift_loc	[[col:green]]You will receive a diplomatic bonus to %s for gifting your own city away.[[/col]]	true
+EAS_trade_transfer_details_loc	Transfer %s from %s to %s	true
