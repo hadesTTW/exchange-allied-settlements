@@ -286,6 +286,13 @@ local function EAS_trade_menu_creation_initiate()
     
     function EAS_trade_factions_list()
         local EAS_receiver_var = {}
+        EAS_factions_var = {}
+        EASMod.EAS_sync_race_filters = nil
+        for _, side in ipairs({"giver", "receiver"}) do
+            core:remove_listener("EAS_trade_" .. side .. "_race_listener")
+            local dropdown = EASMod["EAS_trade_" .. side .. "_race_dropdown"]
+            if dropdown and dropdown:IsValid() then dropdown:Destroy() end
+        end
         
         -- Create the factions listbox from the custom xml to have dropdown list with a scroll bar
 
@@ -361,7 +368,16 @@ local function EAS_trade_menu_creation_initiate()
         
         if #EAS_trade_factions > 0 then
             EAS_find_factions = true
-            table.sort(EAS_trade_factions, function (left, right) return left[1] < right[1] end)
+            local player_faction_key = EAS_trade_current_player:name()
+            table.sort(EAS_trade_factions, function(left, right)
+                -- Both dropdowns share this order; race filters only hide entries.
+                local left_is_player = left[2] == player_faction_key
+                local right_is_player = right[2] == player_faction_key
+                if left_is_player ~= right_is_player then
+                    return left_is_player
+                end
+                return left[1] < right[1]
+            end)
         else
             EAS_find_factions = false
             EASMod.EAS_trade_factions_template_dropdown_entry:CopyComponent("no_faction_var")
@@ -493,6 +509,7 @@ local function EAS_trade_menu_creation_initiate()
                             end
                         end
                         
+                        if EASMod.EAS_sync_race_filters then EASMod.EAS_sync_race_filters() end
                         if EASMod.EAS_update_confirm_state then
                             EASMod.EAS_update_confirm_state()
                         end
@@ -556,6 +573,7 @@ local function EAS_trade_menu_creation_initiate()
                         local EAS_trade_receiver_flag_path = common.get_context_value("CcoCampaignFaction", cm:get_faction(EAS_receiver_faction):command_queue_index(), "FactionFlagDir")
                         EASMod.EAS_trade_faction_their_flag:SetImagePath(EAS_trade_receiver_flag_path .. "/mon_64.png", 0, true)
 
+                        if EASMod.EAS_sync_race_filters then EASMod.EAS_sync_race_filters() end
                         if EASMod.EAS_update_confirm_state then
                             EASMod.EAS_update_confirm_state()
                         end
@@ -567,6 +585,95 @@ local function EAS_trade_menu_creation_initiate()
             true
         )
         
+        -- Each side filters independently, so cross-race transfers remain possible.
+        local races, race_names, faction_races = {}, {}, {}
+        for _, faction in ipairs(EAS_trade_factions) do
+            local race = cm:get_faction(faction[2]):culture()
+            faction_races[faction[2]] = race
+            if not race_names[race] then
+                local name = common.get_context_value("CcoCultureRecord", race, "Name")
+                if not name or name == "" then name = race end
+                race_names[race] = name
+                table.insert(races, {race, name})
+            end
+        end
+        table.sort(races, function(a, b) return a[2] < b[2] end)
+        local any_name = common.get_localised_string("EAS_trade_race_any_loc")
+        table.insert(races, 1, {"any", any_name})
+        race_names.any = any_name
+        local filters = {}
+
+        local function apply_race_filter(side, race)
+            local filter = filters[side]
+            filter.race = race
+            filter.display:SetStateText(common.get_localised_string("EAS_trade_race_label_loc") .. ": " .. race_names[race])
+            local first_match
+            for _, faction in ipairs(EAS_trade_factions) do
+                local matches = race == "any" or faction_races[faction[2]] == race
+                filter.entries[faction[2] .. filter.suffix]:SetVisible(matches)
+                if matches and not first_match then first_match = faction[2] end
+            end
+            filter.list:Layout()
+            return first_match
+        end
+
+        for _, side in ipairs({"giver", "receiver"}) do
+            local id = "EAS_trade_" .. side .. "_race_dropdown"
+            local dropdown = core:get_or_create_component(id, "UI/templates/EAS_dropdown_context.twui.xml", EASMod.EAS_trade_panel_frame)
+            EASMod[id] = dropdown
+            dropdown:SetDockingPoint(5)
+            dropdown:SetDockOffset(side == "giver" and -350 or 350, -205)
+            local popup = find_child_uicomponent(dropdown, "popup_menu")
+            popup:RegisterTopMost()
+            local listview = find_child_uicomponent(popup, "listview")
+            local list_clip = find_child_uicomponent(listview, "list_clip")
+            local list = find_child_uicomponent(list_clip, "list_box")
+            local template = find_child_uicomponent(list, "template_dropdown_entry")
+            template:SetVisible(false)
+            filters[side] = {
+                display = find_child_uicomponent(dropdown, "selected_context_display"),
+                entries = side == "giver" and EAS_factions_var or EAS_receiver_var,
+                list = side == "giver" and EASMod.EAS_trade_factions_list_box or EASMod.EAS_trade_receiver_list_box,
+                suffix = side == "giver" and "" or "_receiver"
+            }
+            local choices = {}
+            for _, race in ipairs(races) do
+                local entry_id = id .. "_" .. race[1]
+                template:CopyComponent(entry_id)
+                local entry = find_child_uicomponent(list, entry_id)
+                find_child_uicomponent(entry, "label_context_name"):SetStateText(race[2])
+                entry:SetVisible(true)
+                choices[entry_id] = race[1]
+            end
+            apply_race_filter(side, "any")
+            local listener = "EAS_trade_" .. side .. "_race_listener"
+            core:add_listener(listener, "ComponentLClickUp",
+                function(context) return choices[context.string] ~= nil end,
+                function(context) CampaignUI.TriggerCampaignScriptEvent(0, context.string) end, true)
+            core:add_listener(listener, "UITrigger",
+                function(context) return choices[context:trigger()] ~= nil end,
+                function(context)
+                    local race = choices[context:trigger()]
+                    local first_match = apply_race_filter(side, race)
+                    local selected = side == "giver" and EAS_giver_faction or EAS_receiver_faction
+                    if first_match and race ~= "any" and faction_races[selected] ~= race then
+                        filters[side].entries[first_match .. filters[side].suffix]:SimulateLClick()
+                    end
+                end, true)
+        end
+
+        -- The existing faction selection swaps sides when selecting the opposite
+        -- faction. Clear an incompatible filter so the swapped selection stays visible.
+        EASMod.EAS_sync_race_filters = function()
+            for _, side in ipairs({"giver", "receiver"}) do
+                local selected = side == "giver" and EAS_giver_faction or EAS_receiver_faction
+                local race = filters[side].race
+                if race ~= "any" and faction_races[selected] ~= race then
+                    apply_race_filter(side, "any")
+                end
+            end
+        end
+
         if EAS_find_factions then
             EAS_factions_var[EAS_trade_factions[1][2]]:SimulateLClick()
         else
@@ -858,6 +965,9 @@ function EAS_trade_create_listeners()
                 EASMod.EAS_trade_panel:Destroy()
                 core:remove_listener("EAS_trade_mpfaction_pressed_listener")
                 core:remove_listener("EAS_trade_faction_pressed_listener")
+                core:remove_listener("EAS_trade_receiver_faction_pressed_listener")
+                core:remove_listener("EAS_trade_giver_race_listener")
+                core:remove_listener("EAS_trade_receiver_race_listener")
                 core:remove_listener("EAS_trade_our_regions_pressed_listener")
                 core:remove_listener("EAS_trade_their_regions_pressed_listener")
                 core:remove_listener("EAS_trade_buttons_pressed_listener")
@@ -867,6 +977,9 @@ function EAS_trade_create_listeners()
                 EASMod.EAS_trade_panel:Destroy()
                 core:remove_listener("EAS_trade_mpfaction_pressed_listener")
                 core:remove_listener("EAS_trade_faction_pressed_listener")
+                core:remove_listener("EAS_trade_receiver_faction_pressed_listener")
+                core:remove_listener("EAS_trade_giver_race_listener")
+                core:remove_listener("EAS_trade_receiver_race_listener")
                 core:remove_listener("EAS_trade_our_regions_pressed_listener")
                 core:remove_listener("EAS_trade_their_regions_pressed_listener")
                 core:remove_listener("EAS_trade_buttons_pressed_listener")

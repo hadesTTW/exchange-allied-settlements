@@ -17,3 +17,5 @@ EAS_trade_panel_giving_ally_loc	Giving Faction	true
 EAS_trade_panel_receiving_ally_loc	Receiving Faction	true
 EAS_trade_panel_confederate_loc	Confederate	true
 EAS_trade_panel_confederate_tooltip_loc	Confederate the giving faction into the receiving faction.\\n[[col:red]]WARNING: This will cause all cities and armies of %s to be annexed by %s. Presing this button will cause %s to cease to exist![[/col]]	true
+EAS_trade_race_any_loc	Any	true
+EAS_trade_race_label_loc	Race	true
