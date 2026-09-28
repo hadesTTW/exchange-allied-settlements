@@ -17,6 +17,26 @@ local EAS_player_factions_whitelist = {
     ["wh2_dlc13_lzd_defenders_of_the_great_plan"] = true
 }
 
+-- Factions that cannot form alliances in vanilla; NAP (or vassal/client) is enough to trade.
+local EAS_non_allyable_factions = {
+    ["wh3_dlc26_ogr_golgfag"] = true, -- Golgfag Maneater
+}
+
+local function is_non_allyable_faction(faction_name)
+    return EAS_non_allyable_factions[faction_name] == true
+end
+
+local function is_eas_trade_partner(player_faction, other_faction)
+    if player_faction:is_ally_vassal_or_client_state_of(other_faction) then
+        return true
+    end
+    if player_faction:non_aggression_pact_with(other_faction)
+        and (is_non_allyable_faction(other_faction:name()) or is_non_allyable_faction(player_faction:name())) then
+        return true
+    end
+    return false
+end
+
 local function is_whitelisted_faction(faction_name)
     -- Always whitelist the currently selected "player" (context of the UI)
     if EAS_trade_current_player and faction_name == EAS_trade_current_player:name() then 
@@ -355,7 +375,7 @@ local function EAS_trade_menu_creation_initiate()
             
             if EAS_trade_current_player ~= current_faction
                 and not is_human_in_mp
-                and EAS_trade_current_player:is_ally_vassal_or_client_state_of(current_faction) then
+                and is_eas_trade_partner(EAS_trade_current_player, current_faction) then
                 local loc_faction_name = common.get_localised_string("factions_screen_name_" .. current_faction:name())
                 if loc_faction_name ~= "" then
                     table.insert(EAS_trade_factions, { loc_faction_name, current_faction:name() } )
